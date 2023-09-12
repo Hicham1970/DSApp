@@ -1,0 +1,39 @@
+***Initial Draft Survey ***
+
+Vessel: z	SGS_684
+Nation: z
+Reg.Port: z
+IMO: z
+Cargo: z
+Client: z
+Quantity: z Mt
+Load_port: z
+Dis_port: z
+Arrival: 7/17/23	 at : '
+Birthing: 7/17/23	 at : '
+Survey: 7/17/23	 at : '
+
+===========================
+Observed Draft
+Dfp: 8 m	 Dfs: 8m
+Dmp: 8 m	 Dfs: 8m
+Dap: 9 m	 Dfs: 9m
+
+===========================
+Corrected Draft:
+Trim Ob: 1.0m	 Lbm:109.0m
+Dfc: 7.99 m	 Dac: 8.99m
+Dmc: 7.99 m
+Dfa: 8.49 m
+Mom: 8.24 m
+QM: 8.12 m
+
+===========================
+Displacement Corrections:
+Displacement: 6495.0 mt
+Dis Corrected for trim: 6538.6 mt
+Dis Corrected for density: 6474.809 mt
+Total deductibles: 1425.0 mt
+Net Displacement: 5049.809 mt
+Cargo + const: 3961 mt
+

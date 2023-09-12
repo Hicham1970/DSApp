@@ -1,0 +1,39 @@
+***Initial Draft Survey ***
+
+Vessel: azizophe	SGS_816
+Nation: panama
+Reg.Port: panama
+IMO: 9876543
+Cargo: steel
+Client: Maghreb steel
+Quantity: 7800 Mt
+Load_port: BOLOGNE
+Dis_port: Casablnaca
+Arrival: 7/2/23	 at : 12:00
+Birthing: 7/2/23	 at : 12:00
+Survey: 7/2/23	 at : 12:00
+
+===========================
+Observed Draft
+Dfp: 6 m	 Dfs: 6m
+Dmp: 6.6 m	 Dfs: 6.8m
+Dap: 7 m	 Dfs: 7m
+
+===========================
+Corrected Draft:
+Trim Ob: 1.0m	 Lbm:87.0m
+Dfc: 5.99 m	 Dac: 6.99m
+Dmc: 6.69 m
+Dfa: 6.49 m
+Mom: 6.59 m
+QM: 6.64 m
+
+===========================
+Displacement Corrections:
+Displacement: 3934.08 mt
+Dis Corrected for trim: 3948.0 mt
+Dis Corrected for density: 3901.78 mt
+Total deductibles: 272.0 mt
+Net Displacement: 3629.78 mt
+Cargo + const: 1532 mt
+

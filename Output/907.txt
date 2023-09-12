@@ -1,0 +1,39 @@
+***Initial Draft Survey ***
+
+Vessel: Abana	SGS_907
+Nation: Panama
+Reg.Port: Panama
+IMO: 96XXXXX
+Cargo: HBI
+Client: Client
+Quantity: 7788 Mt
+Load_port: Muzurata
+Dis_port: casa
+Arrival: 7/8/23	 at : 12:00
+Birthing: 7/8/23	 at : 12:00
+Survey: 7/8/23	 at : 12:00
+
+===========================
+Observed Draft
+Dfp: 7 m	 Dfs: 7m
+Dmp: 7 m	 Dfs: 7m
+Dap: 8 m	 Dfs: 8m
+
+===========================
+Corrected Draft:
+Trim Ob: 1.0m	 Lbm:109.0m
+Dfc: 6.99 m	 Dac: 7.99m
+Dmc: 6.99 m
+Dfa: 7.49 m
+Mom: 7.24 m
+QM: 7.12 m
+
+===========================
+Displacement Corrections:
+Displacement: 6495.24 mt
+Dis Corrected for trim: 6590.47 mt
+Dis Corrected for density: 6429.727 mt
+Total deductibles: 2333.0 mt
+Net Displacement: 4096.727 mt
+Cargo + const: 1997 mt
+

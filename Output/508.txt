@@ -1,0 +1,32 @@
+***Initial Draft Survey ***
+
+Vessel: Arklow Rainbow	SGS_508
+Nation: Netherland
+Reg.Port: Amsterdam
+IMO: 9496459
+Cargo: Steel
+Client: Ocp
+Quantity: 8765.900 Mt
+Load_port: Barcelona sp
+Dis_port: Casablabca
+Arrival: 7/1/23	 at : 11:00
+Birthing: 7/1/23	 at : 13:00
+Survey: 7/1/23	 at : 19:00
+
+===========================
+Observed Draft
+Dfp: 6.89 m	 Dfs: 6.98m
+Dmp: 6.99 m	 Dfs: 6.90m
+Dap: 7.09 m	 Dfs: 7.12m
+
+===========================
+Corrected Draft
+Trim Ob: 0.17m	 Lbm:118.12m
+Dfc: 6.93 m	 Dac: 7.1m
+Dmc: 6.94 m
+Dfa: 7.01 m
+Mom: 6.97 m
+QM: 6.96 m
+
+===========================
+
