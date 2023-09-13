@@ -21,21 +21,17 @@ class Page(ttk.Frame):
         super().__init__(master, **kw)
 
 
-###############################################################
-
-
-#########################
-
-
 class InitialPage(Page):
     def __init__(self, master, **kw):
         super().__init__(master, **kw)
+        self.net_displacement_init = ""
 
         self.create_frame_content()
         self.pack(expand=True, fill='both')
 
         self.FinalPage = None
-        self.draft_number = random.randint(234,6534)
+        self.draft_number = random.randint(234, 6534)
+
     def create_frame_content(self) -> ttk.Frame:
         # create widget specific for the setting(Initial Draft)
         # and returns a ttk.Frame
@@ -1032,7 +1028,7 @@ class InitialPage(Page):
         self.constante_entry.configure(state=DISABLED)
 
         messagebox.showinfo(
-            'Success', "we get the net displacement & the calculated constante ")
+            'Success', "we get the net displacement & the calculated constant ")
 
     def total_deductibles(self):
         self.total_deductibles_entry.configure(state=NORMAL)
@@ -1635,13 +1631,18 @@ class InitialPage(Page):
 
 
 class FinalPage(Page):
-    def __init__(self, master, **kw):
+
+    def __init__(self, master,**kw):
         super().__init__(master, **kw)
+        self.load_displacement = ""
+
         self.create_frame_content()
         self.pack(fill=tk.BOTH, expand=True)
 
+        self.InitialPage = None
+
     def create_frame_content(self) -> ttk.Frame:
-        # create widget specific for the setting(Initial Draft)
+        # create widget specific for the setting(Final Draft)
         # and returns a ttk.Frame
         self.frame_content = ttk.Frame(self)
 
@@ -2491,7 +2492,7 @@ class FinalPage(Page):
         self.vessel_Arrival_entry.focus()
 
     def load_displacement(self):
-        global net_displacement
+
         self.total_deductibles_entry.configure(state=NORMAL)
         self.load_displacement_entry.configure(state=NORMAL)
         self.cargo_entry.configure(state=NORMAL)
@@ -2513,7 +2514,7 @@ class FinalPage(Page):
             # net_displacement = float(net_displacement)
             load_displacement = round(
                 corrected_displacement_for_density - total_deductibles, 3)
-            cargo = round(load_displacement - net_displacement)
+            cargo = round(load_displacement - net_displacement_init)
 
         self.load_displacement_entry.delete(0, tk.END)
         self.cargo_entry.delete(0, tk.END)
@@ -2527,6 +2528,8 @@ class FinalPage(Page):
 
         messagebox.showinfo(
             'Success', "we get the net displacement & the calculated constante ")
+
+
 
     def total_deductibles(self):
         self.total_deductibles_entry.configure(state=NORMAL)
