@@ -1,32 +1,39 @@
 ***Initial Draft Survey ***
 
-Vessel: Arklow Rainbow	SGS_508
-Nation: Netherland
-Reg.Port: Amsterdam
-IMO: 9496459
-Cargo: Steel
-Client: Ocp
-Quantity: 8765.900 Mt
-Load_port: Barcelona sp
-Dis_port: Casablabca
-Arrival: 7/1/23	 at : 11:00
-Birthing: 7/1/23	 at : 13:00
-Survey: 7/1/23	 at : 19:00
+Vessel: Arklow Gadget	SGS_508
+Nation: Norway
+Reg.Port: Glomfjord
+IMO: 9866454
+Cargo: Phosphate
+Client: Yara 
+Quantity: 4500 Mt
+Load_port: Casablanca
+Dis_port: Glomfjord
+Arrival: 9/12/25	 at : 12:00
+Birthing: 9/12/25	 at : 15:30
+Survey: 9/12/25	 at : 16:45
 
 ===========================
 Observed Draft
-Dfp: 6.89 m	 Dfs: 6.98m
-Dmp: 6.99 m	 Dfs: 6.90m
-Dap: 7.09 m	 Dfs: 7.12m
+Dfp: 6.45 m	 Dfs: 6.47m
+Dmp: 7.04 m	 Dfs: 7.06m
+Dap: 7.5 m	 Dfs: 7.6m
 
 ===========================
-Corrected Draft
-Trim Ob: 0.17m	 Lbm:118.12m
-Dfc: 6.93 m	 Dac: 7.1m
-Dmc: 6.94 m
-Dfa: 7.01 m
-Mom: 6.97 m
-QM: 6.96 m
+Corrected Draft:
+Trim Ob: 1.09m	 Lbm:87.54m
+Dfc: 6.45 m	 Dac: 7.53m
+Dmc: 7.04 m
+Dfa: 6.99 m
+Mom: 7.02 m
+QM: 7.03 m
 
 ===========================
+Displacement Corrections:
+Displacement: 2071.5 mt
+Dis Corrected for trim: 2113.77 mt
+Dis Corrected for density: 2115.832 mt
+Total deductibles: 1026.9 mt
+Net Displacement: 1088.932 mt
+Cargo + const: 21 mt
 

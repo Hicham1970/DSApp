@@ -1,7 +1,9 @@
 import tkinter as tk
 from tkinter import ttk
-from p2 import InitialPage, FinalPage, BallastPage, RecapPage
+
 from PIL import Image, ImageTk
+
+from p2 import BallastPage, FinalPage, InitialPage, RecapPage
 
 
 class SettingsView(ttk.Frame):
@@ -160,3 +162,14 @@ if __name__ == "__main__":
     settings.pack(fill='both', expand=True)
 
     root.mainloop()
+
+
+"""
+ ToDo 
+-Utiliser un cache pour les images.
+-Éviter la duplication des appels à pack() et à add_page().
+-Corriger la duplication de la page "Recap".
+-Déplacer le code principal dans une fonction main().
+-Ne pas appeler pack dans add_setting.
+
+"""

@@ -1,14 +1,12 @@
-import tkinter as tk
-from tkinter import ttk
-from tkinter import *
-from tkcalendar import DateEntry
-from tkinter import messagebox
-from PIL import Image, ImageTk
 import os
 import random
-import tempfile
 import smtplib
-from tkinter import font
+import tempfile
+import tkinter as tk
+from tkinter import *
+from tkinter import messagebox, ttk
+
+from tkcalendar import DateEntry
 
 # Create a folder for previous .txt data
 if not os.path.exists('Output'):
@@ -338,7 +336,7 @@ class InitialPage(Page):
 
         self.obs_trim_entry.configure(state=DISABLED)
         self.lbm_entry.configure(state=DISABLED)
-        self.corrected_for_entry.configure(state=DISABLED)
+        self.corrected_for_entry.configure(state=DISABLED)  # noqa: F405
         self.corrected_aft_entry.configure(state=DISABLED)
         self.corrected_mid_entry.configure(state=DISABLED)
         self.mean_for_aft_entry.configure(state=DISABLED)
@@ -1632,7 +1630,7 @@ class InitialPage(Page):
 
 class FinalPage(Page):
 
-    def __init__(self, master,**kw):
+    def __init__(self, master, **kw):
         super().__init__(master, **kw)
         self.load_displacement = ""
 
@@ -2529,8 +2527,6 @@ class FinalPage(Page):
         messagebox.showinfo(
             'Success', "we get the net displacement & the calculated constante ")
 
-
-
     def total_deductibles(self):
         self.total_deductibles_entry.configure(state=NORMAL)
 
@@ -3170,3 +3166,12 @@ class RecapPage(Page):
         # TODO add more widget here
 
         return self.frame_content
+
+
+if __name__ == "__main__":
+    import tkinter as tk
+    root = tk.Tk()
+    root.title("Ballast Calculation App")
+    app = InitialPage(root)
+    app.pack(fill="both", expand=True)
+    root.mainloop()
