@@ -720,7 +720,7 @@ class InitialPage(Page):
 
         self.textarea = tk.Text(frame4,
                                 height=60, width=37,
-                                yscrollcommand=Scrollbar.set)
+                                yscrollcommand=self.scrollbar.set)
         self.textarea.pack()
         self.scrollbar.config(command=self.textarea.yview)
 
@@ -2512,7 +2512,7 @@ class FinalPage(Page):
             # net_displacement = float(net_displacement)
             load_displacement = round(
                 corrected_displacement_for_density - total_deductibles, 3)
-            cargo = round(load_displacement - net_displacement_init)
+            cargo = round(load_displacement - net_displacement)
 
         self.load_displacement_entry.delete(0, tk.END)
         self.cargo_entry.delete(0, tk.END)
