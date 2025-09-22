@@ -1,10 +1,9 @@
 import os
 import random
-import smtplib
 import tempfile
 import tkinter as tk
+from tkinter import messagebox, ttk, DISABLED, NORMAL
 from tkinter import *
-from tkinter import messagebox, ttk
 
 from tkcalendar import DateEntry
 
@@ -237,25 +236,25 @@ class InitialPage(Page):
 
         # entries
         self.lbp_entry = tk.Entry(frame, width=6, background='gray37', font=('times new roman', 10, 'bold'),
-                                  fg="wheat1")
+                                  fg="aquamarine2")
         self.draft_for_port_entry = tk.Entry(frame, width=6, background='gray37', font=('times new roman', 10, 'bold'),
-                                             fg="wheat1")
+                                             fg="aquamarine2")
         self.draft_for_star_entry = tk.Entry(frame, width=6, background='gray37', font=('times new roman', 10, 'bold'),
-                                             fg="wheat1")
+                                             fg="aquamarine2")
         self.draft_aft_port_entry = tk.Entry(frame, width=6, background='gray37', font=('times new roman', 10, 'bold'),
-                                             fg="wheat1")
+                                             fg="aquamarine2")
         self.draft_aft_star_entry = tk.Entry(frame, width=6, background='gray37', font=('times new roman', 10, 'bold'),
-                                             fg="wheat1")
+                                             fg="aquamarine2")
         self.draft_mid_port_entry = tk.Entry(frame, width=6, background='gray37', font=('times new roman', 10, 'bold'),
-                                             fg="wheat1")
+                                             fg="aquamarine2")
         self.draft_mid_star_entry = tk.Entry(frame, width=6, background='gray37', font=('times new roman', 10, 'bold'),
-                                             fg="wheat1")
+                                             fg="aquamarine2")
         self.distance_from_for_pp_entry = tk.Entry(frame, width=6, background='gray37',
-                                                   font=('times new roman', 10, 'bold'), fg="wheat1")
+                                                   font=('times new roman', 10, 'bold'), fg="aquamarine2")
         self.distance_from_aft_pp_entry = tk.Entry(frame, width=6, background='gray37',
-                                                   font=('times new roman', 10, 'bold'), fg="wheat1")
+                                                   font=('times new roman', 10, 'bold'), fg="aquamarine2")
         self.distance_from_mid_pp_entry = tk.Entry(frame, width=6, background='gray37',
-                                                   font=('times new roman', 10, 'bold'), fg="wheat1")
+                                                   font=('times new roman', 10, 'bold'), fg="aquamarine2")
 
         self.position_from_for_pp_combobox = ttk.Combobox(
             frame, values=["A", "F", "N/A"], width=4)
@@ -264,22 +263,22 @@ class InitialPage(Page):
         self.position_from_mid_pp_combobox = ttk.Combobox(
             frame, values=["A", "F", "N/A"], width=4)
 
-        self.obs_trim_entry = tk.Entry(frame, width=8, background='gray37', font=('times new roman', 10, 'bold'),
-                                       fg="aquamarine2")
-        self.lbm_entry = tk.Entry(frame, width=8, background='gray37', font=('times new roman', 10, 'bold'),
-                                  fg="aquamarine2")
-        self.corrected_for_entry = tk.Entry(frame, width=8, background='gray37', font=('times new roman', 10, 'bold'),
-                                            fg="aquamarine2")
-        self.corrected_aft_entry = tk.Entry(frame, width=8, background='gray37', font=('times new roman', 10, 'bold'),
-                                            fg="aquamarine2")
-        self.corrected_mid_entry = tk.Entry(frame, width=8, background='gray37', font=('times new roman', 10, 'bold'),
-                                            fg="aquamarine2")
-        self.mean_for_aft_entry = tk.Entry(frame, width=8, background='gray37', font=('times new roman', 10, 'bold'),
-                                           fg="aquamarine2")
-        self.mean_of_mean_entry = tk.Entry(frame, width=8, background='gray37', font=('times new roman', 10, 'bold'),
-                                           fg="aquamarine2")
-        self.quarter_mean_entry = tk.Entry(frame, width=8, background='gray37', font=('times new roman', 10, 'bold'),
-                                           fg="aquamarine2")
+        self.obs_trim_entry = tk.Entry(frame, width=6, state='normal', background='gray49',
+                                       font=('times new roman', 10, 'bold'), fg="cyan")
+        self.lbm_entry = tk.Entry(frame, width=6, state='normal', background='gray49',
+                                  font=('times new roman', 10, 'bold'), fg="cyan")
+        self.corrected_for_entry = tk.Entry(frame, width=6, state='normal', background='gray49',
+                                            font=('times new roman', 10, 'bold'), fg="cyan")
+        self.corrected_aft_entry = tk.Entry(frame, width=6, state='normal', background='gray49',
+                                            font=('times new roman', 10, 'bold'), fg="cyan")
+        self.corrected_mid_entry = tk.Entry(frame, width=6, state='normal', background='gray49',
+                                            font=('times new roman', 10, 'bold'), fg="cyan")
+        self.mean_for_aft_entry = tk.Entry(frame, width=6, state='normal', background='gray49',
+                                           font=('times new roman', 10, 'bold'), fg="cyan")
+        self.mean_of_mean_entry = tk.Entry(frame, width=6, state='normal', background='gray49',
+                                           font=('times new roman', 10, 'bold'), fg="cyan")
+        self.quarter_mean_entry = tk.Entry(frame, width=6, state='normal', background='gray49',
+                                           font=('times new roman', 10, 'bold'), fg="cyan")
 
         self.button_entry = tk.Button(frame, text='Calculate',
                                       foreground='snow',
@@ -332,11 +331,12 @@ class InitialPage(Page):
         self.mean_for_aft_entry.grid(row=6, column=3, pady=3, padx=0)
         self.mean_of_mean_entry.grid(row=7, column=3, pady=3, padx=0)
         self.quarter_mean_entry.grid(row=8, column=3, pady=3, padx=0)
+
         self.button_entry.grid(row=9, column=0, pady=5, padx=1)
 
         self.obs_trim_entry.configure(state=DISABLED)
         self.lbm_entry.configure(state=DISABLED)
-        self.corrected_for_entry.configure(state=DISABLED)  # noqa: F405
+        self.corrected_for_entry.configure(state=DISABLED)
         self.corrected_aft_entry.configure(state=DISABLED)
         self.corrected_mid_entry.configure(state=DISABLED)
         self.mean_for_aft_entry.configure(state=DISABLED)
@@ -364,29 +364,29 @@ class InitialPage(Page):
             frame, text="", foreground='gold', background='gray12')
 
         self.draft_sup_entry = tk.Entry(
-            frame, width=7, background='gray37', font=('times new roman', 10, 'bold'))
+            frame, width=7, background='gray49', font=('times new roman', 10, 'bold'), fg="cyan")
         self.init_draft_entry = tk.Entry(
-            frame, width=7, background='gray37', font=('times new roman', 10, 'bold'))
+            frame, width=7, background='gray49', font=('times new roman', 10, 'bold'), fg="cyan")
         self.draft_inf_entry = tk.Entry(
-            frame, width=7, background='gray37', font=('times new roman', 10, 'bold'))
-        self.displacement_sup_entry = tk.Entry(frame, width=7, background='gray37',
-                                               font=('times new roman', 10, 'bold'))
+            frame, width=7, background='gray49', font=('times new roman', 10, 'bold'), fg="cyan")
+        self.displacement_sup_entry = tk.Entry(frame, width=7, background='gray49',
+                                               font=('times new roman', 10, 'bold'), fg="cyan")
         self.init_displacement_entry = tk.Entry(
-            frame, width=7, state='normal', background='gray37', font=('times new roman', 10, 'bold'))
-        self.displacement_inf_entry = tk.Entry(frame, width=7, background='gray37',
-                                               font=('times new roman', 10, 'bold'))
-        self.tpc_sup_entry = tk.Entry(
-            frame, width=7, background='gray37', font=('times new roman', 10, 'bold'))
-        self.init_tpc_entry = tk.Entry(frame, width=7, state='normal', background='gray37',
-                                       font=('times new roman', 10, 'bold'))
-        self.tpc_inf_entry = tk.Entry(
-            frame, width=7, background='gray37', font=('times new roman', 10, 'bold'))
-        self.lcf_sup_entry = tk.Entry(
-            frame, width=5, background='gray37', font=('times new roman', 10, 'bold'))
-        self.init_lcf_entry = tk.Entry(frame, width=5, state='normal', background='gray37',
-                                       font=('times new roman', 10, 'bold'))
-        self.lcf_inf_entry = tk.Entry(
-            frame, width=5, background='gray37', font=('times new roman', 10, 'bold'))
+            frame, width=7, state='normal', background='gray44', font=('times new roman', 10, 'bold'), fg="cyan")
+        self.displacement_inf_entry = tk.Entry(frame, width=7, background='gray49',
+                                               font=('times new roman', 10, 'bold'), fg="cyan")
+        self.tpc_sup_entry = tk.Entry(frame, width=7, background='gray49', font=('times new roman', 10, 'bold'),
+                                      fg="cyan")
+        self.init_tpc_entry = tk.Entry(frame, width=7, state='normal', background='gray44',
+                                       font=('times new roman', 10, 'bold'), fg="cyan")
+        self.tpc_inf_entry = tk.Entry(frame, width=7, background='gray49', font=('times new roman', 10, 'bold'),
+                                      fg="cyan")
+        self.lcf_sup_entry = tk.Entry(frame, width=5, background='gray49', font=('times new roman', 10, 'bold'),
+                                      fg="cyan")
+        self.init_lcf_entry = tk.Entry(frame, width=5, state='normal', background='gray44',
+                                       font=('times new roman', 10, 'bold'), fg="cyan")
+        self.lcf_inf_entry = tk.Entry(frame, width=5, background='gray49', font=('times new roman', 10, 'bold'),
+                                      fg="cyan")
 
         # Create the interpolation button
         self.interpolation_button = tk.Button(
@@ -424,7 +424,6 @@ class InitialPage(Page):
         self.init_displacement_entry.configure(state=DISABLED)
         self.init_tpc_entry.configure(state=DISABLED)
         self.init_lcf_entry.configure(state=DISABLED)
-
         # frame3
         frame3 = tk.LabelFrame(self,
                                font=('times new roman', 12, 'bold'), background='gray12', fg='gold',
@@ -443,17 +442,17 @@ class InitialPage(Page):
             frame3, text="MTC+", foreground='gold', background='gray12')
 
         self.d_plus50_sup_entry = tk.Entry(
-            frame3, width=7, background='gray44', font=('times new roman', 10, 'bold'), fg='pale turquoise')
+            frame3, width=7, background='gray47', font=('times new roman', 10, 'bold'), fg="cyan")
         self.d_plus50_inf_entry = tk.Entry(
-            frame3, width=7, background='gray44', font=('times new roman', 10, 'bold'), fg='pale turquoise')
+            frame3, width=7, background='gray47', font=('times new roman', 10, 'bold'), fg="cyan")
         self.d_plus50_entry = tk.Entry(
-            frame3, width=7, background='gray44', font=('times new roman', 10, 'bold'), fg='pale turquoise')
+            frame3, width=7, background='gray47', font=('times new roman', 10, 'bold'), fg="cyan2")
         self.mtc_plus50_sup_entry = tk.Entry(
-            frame3, width=7, background='gray44', font=('times new roman', 10, 'bold'), fg='pale turquoise')
+            frame3, width=7, background='gray47', font=('times new roman', 10, 'bold'), fg="cyan")
         self.mtc_plus50_inf_entry = tk.Entry(
-            frame3, width=7, background='gray44', font=('times new roman', 10, 'bold'), fg='pale turquoise')
+            frame3, width=7, background='gray47', font=('times new roman', 10, 'bold'), fg="cyan")
         self.mtc1_entry = tk.Entry(
-            frame3, width=7, background='gray44', font=('times new roman', 10, 'bold'), fg='pale turquoise')
+            frame3, width=7, background='gray47', font=('times new roman', 10, 'bold'), fg="cyan")
 
         # Layout
         self.d_plus50_sup_lbl.grid(row=1, column=0, padx=1, pady=3)
@@ -484,19 +483,19 @@ class InitialPage(Page):
             frame3, text="Delta MTC", foreground='gold', background='gray12')
 
         self.d_moins50_sup_entry = tk.Entry(
-            frame3, width=7, background='gray44', font=('times new roman', 10, 'bold'), fg='pale turquoise')
+            frame3, width=7, background='gray47', font=('times new roman', 10, 'bold'), fg="cyan")
         self.d_moins50_inf_entry = tk.Entry(
-            frame3, width=7, background='gray44', font=('times new roman', 10, 'bold'), fg='pale turquoise')
+            frame3, width=7, background='gray47', font=('times new roman', 10, 'bold'), fg="cyan")
         self.d_moins50_entry = tk.Entry(
-            frame3, width=7, background='gray44', font=('times new roman', 10, 'bold'), fg='pale turquoise')
+            frame3, width=7, background='gray47', font=('times new roman', 10, 'bold'), fg="cyan2")
         self.mtc_moins50_sup_entry = tk.Entry(
-            frame3, width=7, background='gray44', font=('times new roman', 10, 'bold'), fg='pale turquoise')
+            frame3, width=7, background='gray47', font=('times new roman', 10, 'bold'), fg="cyan")
         self.mtc_moins50_inf_entry = tk.Entry(
-            frame3, width=7, background='gray44', font=('times new roman', 10, 'bold'), fg='pale turquoise')
+            frame3, width=7, background='gray47', font=('times new roman', 10, 'bold'), fg="cyan")
         self.mtc2_entry = tk.Entry(
-            frame3, width=7, background='gray44', font=('times new roman', 10, 'bold'), fg='pale turquoise')
+            frame3, width=7, background='gray47', font=('times new roman', 10, 'bold'), fg="cyan")
         self.delta_mtc_entry = tk.Entry(
-            frame3, width=7, background='gray44', font=('times new roman', 10, 'bold'), fg='pale turquoise')
+            frame3, width=7, background='gray48', font=('times new roman', 10, 'bold'), fg="cyan3")
 
         # Layout
         self.d_moins50_sup_lbl.grid(row=1, column=3, pady=3)
@@ -504,7 +503,7 @@ class InitialPage(Page):
         self.d_moins50_lbl.grid(row=2, column=3, pady=3)
         self.draft_lbl.grid(row=0, column=4, pady=3)
         self.mtc2_lbl.grid(row=0, column=5, pady=3)
-        self.delta_mtc_lbl.grid(row=5, column=1, padx=1, pady=10)
+        self.delta_mtc_lbl.grid(row=5, column=1, padx=1, pady=13)
 
         self.d_moins50_sup_entry.grid(row=1, column=4, pady=3)
         self.d_moins50_inf_entry.grid(row=3, column=4, pady=3)
@@ -512,7 +511,7 @@ class InitialPage(Page):
         self.mtc_moins50_sup_entry.grid(row=1, column=5, pady=3)
         self.mtc_moins50_inf_entry.grid(row=3, column=5, pady=3)
         self.mtc2_entry.grid(row=2, column=5, pady=3)
-        self.delta_mtc_entry.grid(row=5, column=2, pady=10)
+        self.delta_mtc_entry.grid(row=5, column=2, pady=13)
         # Create the delta MTC button
         self.delta_MTC_button = tk.Button(
             frame3, text="Delta",
@@ -520,11 +519,13 @@ class InitialPage(Page):
             bg='black',
             width=8,
             command=self.delta_mtc)
+
         self.delta_MTC_button.grid(row=5, column=0, pady=13)
 
         self.mtc1_entry.configure(state=DISABLED)
         self.mtc2_entry.configure(state=DISABLED)
         self.delta_mtc_entry.configure(state=DISABLED)
+
         ################### Displacement ########
 
         self.first_trim_corr_lbl = tk.Label(frame3, text="First Trim Cor:", foreground='gold', anchor='e',
@@ -554,27 +555,27 @@ class InitialPage(Page):
 
         self.correct_displacement_lbl = tk.Label(frame3, text='Displ Corrected:',
                                                  foreground='gold', anchor='e', background='gray12')
-        self.total_deductibles_lbl = tk.Label(frame3, text='Deduc:',
+        self.total_deductibles_lbl = tk.Label(frame3, text='Total Deduc:',
                                               foreground='gold', anchor='e', background='gray12')
-        self.net_displacement_lbl = tk.Label(frame3, text='Disp:',
-                                             foreground='gold', anchor='e', background='gray12')
-        self.light_ship_lbl = tk.Label(frame3, text='LightShip :',
-                                       foreground='gold', anchor='e', background='gray12')
-        self.constante_lbl = tk.Label(frame3, text='Car&cos:',
-                                      foreground='gold', anchor='e', background='gray12')
+        self.load_displacement_lbl = tk.Label(frame3, text='Load Disp:',
+                                              foreground='gold', anchor='e', background='gray12')
+        self.net_init_displacement_lbl = tk.Label(frame3, text='LightShip :',
+                                                  foreground='gold', anchor='e', background='gray12')
+        self.cargo_lbl = tk.Label(frame3, text='Carg+cons:',
+                                  foreground='gold', anchor='e', background='gray12')
 
         self.first_trim_corr_entry = tk.Entry(frame3, width=8, background='gray44',
                                               font=('times new roman', 10, 'bold'), fg='pale turquoise')
         self.second_trim_corr_entry = tk.Entry(frame3, width=8, background='gray44',
                                                font=('times new roman', 10, 'bold'), fg='pale turquoise')
         self.dis_cor_trim_entry = tk.Entry(frame3, width=8, background='gray44', font=('times new roman', 10, 'bold'),
-                                           fg='pale turquoise')
+                                           fg='lavender')
         self.density_table_entry = tk.Entry(frame3, width=8, background='gray44', font=('times new roman', 10, 'bold'),
                                             fg='pale turquoise')
         self.density_dock_entry = tk.Entry(frame3, width=8, background='gray44', font=('times new roman', 10, 'bold'),
                                            fg='pale turquoise')
         self.dis_cor_density_entry = tk.Entry(frame3, width=8, background='gray44',
-                                              font=('times new roman', 10, 'bold'), fg='pale turquoise')
+                                              font=('times new roman', 10, 'bold'), fg='lavender')
         self.ballast_qty_entry = tk.Entry(frame3, width=8, background='gray44', font=('times new roman', 10, 'bold'),
                                           fg='pale turquoise')
         self.fuel_qty_entry = tk.Entry(frame3, width=8, background='gray44', font=('times new roman', 10, 'bold'),
@@ -589,16 +590,15 @@ class InitialPage(Page):
                                          fg='pale turquoise')
 
         self.correct_displacement_entry = tk.Entry(frame3, width=8, background='gray44',
-                                                   font=('times new roman', 10, 'bold'), fg='pale turquoise')
+                                                   font=('times new roman', 10, 'bold'), fg='lavender')
         self.total_deductibles_entry = tk.Entry(frame3, width=8, background='gray44',
-                                                font=('times new roman', 10, 'bold'), fg='pale turquoise')
-        # self.net_disp = tk.StringVar()
-        self.net_displacement_entry = tk.Entry(frame3, width=8, background='gray44',
-                                               font=('times new roman', 10, 'bold'), fg='pale turquoise')
-        self.light_ship_entry = tk.Entry(frame3, width=8, background='gray44', font=('times new roman', 10, 'bold'),
-                                         fg='pale turquoise')
-        self.constante_entry = tk.Entry(frame3, width=8, background='gray44', font=('times new roman', 10, 'bold'),
-                                        fg='pale turquoise')
+                                                font=('times new roman', 10, 'bold'), fg='lavender')
+        self.load_displacement_entry = tk.Entry(frame3, width=8, background='gray44',
+                                                font=('times new roman', 10, 'bold'), fg='lavender')
+        self.net_init_displacement_entry = tk.Entry(frame3, width=8, background='gray44',
+                                                    font=('times new roman', 10, 'bold'), fg='pale turquoise')
+        self.cargo_entry = tk.Entry(frame3, width=8, background='gray44', font=('times new roman', 10, 'bold'),
+                                    fg='tomato')
 
         self.first_trim_corr_lbl.grid(row=10, column=0, padx=2, pady=8)
         self.second_trim_corr_lbl.grid(row=11, column=0, padx=2, pady=5)
@@ -615,10 +615,10 @@ class InitialPage(Page):
 
         # self.correct_displacement_lbl.grid(row=10, column=4, padx=2, pady=8)
         self.total_deductibles_lbl.grid(row=11, column=4, pady=8)
-        self.net_displacement_lbl.grid(row=12, column=4, pady=8)
-        self.light_ship_lbl.grid(row=13, column=4, pady=8)
-        self.constante_lbl.grid(row=14, column=4, pady=8)
-        self.constante_lbl.config(text=f'{self.radio_var.get()}')
+        self.load_displacement_lbl.grid(row=12, column=4, pady=8)
+        self.net_init_displacement_lbl.grid(row=13, column=4, pady=8)
+        self.cargo_lbl.grid(row=14, column=4, pady=8)
+        self.cargo_lbl.config(text=self.radio_var.get())
 
         self.first_trim_corr_entry.grid(row=10, column=1, padx=2, pady=8)
         self.second_trim_corr_entry.grid(row=11, column=1, padx=2, pady=5)
@@ -635,9 +635,9 @@ class InitialPage(Page):
 
         # self.correct_displacement_entry.grid(row=10, column=5, padx=2, pady=8)
         self.total_deductibles_entry.grid(row=11, column=5, pady=8)
-        self.net_displacement_entry.grid(row=12, column=5, pady=8)
-        self.light_ship_entry.grid(row=13, column=5, pady=8)
-        self.constante_entry.grid(row=14, column=5, pady=8)
+        self.load_displacement_entry.grid(row=12, column=5, pady=8)
+        self.net_init_displacement_entry.grid(row=13, column=5, pady=8)
+        self.cargo_entry.grid(row=14, column=5, pady=8)
 
         # buttons_frame
         self.btn_frame = tk.LabelFrame(frame3,
@@ -665,12 +665,12 @@ class InitialPage(Page):
                                                command=self.total_deductibles)
         self.total_deductibles_btn.grid(row=0, column=2, padx=5, pady=6)
 
-        self.net_displacement_btn = tk.Button(self.btn_frame, text="Net Disp",
-                                              foreground='snow',
-                                              bg='black',
-                                              width=8,
-                                              command=self.net_displacement)
-        self.net_displacement_btn.grid(row=0, column=3, padx=5, pady=6)
+        self.load_displacement_btn = tk.Button(self.btn_frame, text="Load Displ",
+                                               foreground='snow',
+                                               bg='black',
+                                               width=8,
+                                               command=self.load_displacement)
+        self.load_displacement_btn.grid(row=0, column=3, padx=5, pady=6)
 
         self.clear_btn = tk.Button(self.btn_frame, text="Clear",
                                    foreground='snow',
@@ -678,26 +678,14 @@ class InitialPage(Page):
                                    width=8,
                                    command=self.clear)
         self.clear_btn.grid(row=0, column=4, padx=5, pady=6)
-        self.email_btn = tk.Button(self.btn_frame, text="Email",
-                                   foreground='snow',
-                                   bg='black',
-                                   width=8,
-                                   command=self.email)
-        self.email_btn.grid(row=1, column=0, padx=5, pady=6)
-        self.update_btn = tk.Button(self.btn_frame, text="Update",
-                                    foreground='snow',
-                                    bg='black',
-                                    width=8,
-                                    command=self.update)
-        self.update_btn.grid(row=1, column=2, padx=5, pady=6)
 
         self.dis_cor_trim_entry.configure(state=DISABLED)
         self.first_trim_corr_entry.configure(state=DISABLED)
         self.second_trim_corr_entry.configure(state=DISABLED)
         self.dis_cor_density_entry.configure(state=DISABLED)
         self.total_deductibles_entry.configure(state=DISABLED)
-        self.net_displacement_entry.configure(state=DISABLED)
-        self.constante_entry.configure(state=DISABLED)
+        self.load_displacement_entry.configure(state=DISABLED)
+        self.cargo_entry.configure(state=DISABLED)
 
         # frame4
         frame4 = tk.LabelFrame(self, text='TextArea', bg='gray12',
@@ -706,7 +694,7 @@ class InitialPage(Page):
         frame4.pack(side='left', fill='both')
 
         self.textarea_lbl = tk.Label(
-            frame4, text="Initial Draft Survey",
+            frame4, text="Final Draft Survey",
             bd=6, relief='groove',
             font=('times new roman', 12, 'bold'),
             anchor='center',
@@ -724,103 +712,7 @@ class InitialPage(Page):
         self.textarea.pack()
         self.scrollbar.config(command=self.textarea.yview)
 
-        ########################### L O G I C S ####################################
-
-    # hdbzcfxmkdqhpoqh # pour agar22thoul@gmail.com like sender
-    '''def update(self, neto):
-        print('net displ :', self.net_displacement_entry.get())'''
-
-    def email(self):
-        def send_gmail():
-            try:
-                ob = smtplib.SMTP('smtp.gmail.com', 587)
-                ob.starttls()
-                ob.login(sender_entry.get(), receiver_entry.get())
-                sender_address = sender_entry.get()
-                message = email_textarea.get(1.0, tk.END)
-                receiver_address = receiver_entry.get()
-                ob.sendmail(sender_address, receiver_address, message)
-                ob.quit()
-                messagebox.showinfo(
-                    'Success', 'Your message was successfully sent')
-            except:
-                messagebox.showerror('Error', 'May be the password is wrong or something else,\
-                 untel now i dont know what is it')
-
-        if self.textarea.get(1.0, tk.END) == '\n':
-            messagebox.showerror(
-                'Error', 'There is no data in the textarea to send')
-        else:
-            root1 = tk.Toplevel()
-            root1.title('Send Gmail')
-            root1.config(bg='gray13')
-            root1.resizable(0, 0)
-
-            # Sender zone
-            sender_frm = tk.LabelFrame(root1,
-                                       text='Sender',
-                                       font=('arial', 14, 'bold'),
-                                       bd=6, bg='gray13', fg='gold')
-            sender_frm.grid(row=0, column=0, padx=40, pady=20)
-            sender_lbl = tk.Label(sender_frm,
-                                  text="Sender's Email:",
-                                  font=('arial', 13, 'bold'),
-                                  bg='gray13', fg='white')
-            sender_lbl.grid(row=0, column=0, padx=10, pady=8)
-            sender_entry = tk.Entry(sender_frm, width=23, bd=2, relief='ridge',
-                                    font=('arial', 12, 'bold'),
-                                    bg='turquoise', fg='tomato')
-            sender_entry.grid(row=0, column=1, padx=10, pady=8)
-            password_lbl = tk.Label(sender_frm,
-                                    text="Password:",
-                                    font=('arial', 13, 'bold'),
-                                    bg='gray13', fg='white')
-            password_lbl.grid(row=1, column=0, padx=10, pady=8)
-            password_entry = tk.Entry(sender_frm,
-                                      width=23, bd=2, relief='ridge',
-                                      font=('arial', 12, 'bold'),
-                                      bg='turquoise', fg='tomato', show='*')
-            password_entry.grid(row=1, column=1, padx=10, pady=8)
-            # Receiver zone
-            receiver_frm = tk.LabelFrame(root1,
-                                         text='Receiver',
-                                         font=('arial', 14, 'bold'),
-                                         bd=6, bg='gray13', fg='gold')
-            receiver_frm.grid(row=1, column=0, padx=40, pady=20)
-
-            receiver_lbl = tk.Label(receiver_frm,
-                                    text="Email address:",
-                                    font=('arial', 13, 'bold'),
-                                    bg='gray13', fg='white')
-            receiver_lbl.grid(row=0, column=0, padx=10, pady=8)
-            receiver_entry = tk.Entry(receiver_frm,
-                                      width=23, bd=2, relief='ridge',
-                                      font=('arial', 12, 'bold'),
-                                      bg='turquoise', fg='tomato')
-            receiver_entry.grid(row=0, column=1, padx=10, pady=8)
-            message_lbl = tk.Label(receiver_frm,
-                                   text="Message:",
-                                   font=('arial', 12, 'bold'),
-                                   bg='gray13', fg='white')
-            message_lbl.grid(row=1, column=0, padx=10, pady=8)
-            # textArea
-            email_textarea = tk.Text(receiver_frm,
-                                     font=('arial', 12, 'bold'),
-                                     bd=2, width=38, height=15,
-                                     relief='sunken')
-            email_textarea.grid(row=2, column=0, columnspan=2)
-            email_textarea.delete(1.0, tk.END)
-            email_textarea.insert(tk.END, self.textarea.get(1.0, tk.END))
-
-            # Sending Button
-            gmail_btn = tk.Button(root1, width=15, fg='gold',
-                                  text='Send', bg="gray16",
-                                  font=('arial', 12, 'bold'),
-                                  command=send_gmail)
-
-            gmail_btn.grid(row=2, column=0, pady=20)
-
-            root1.mainloop()
+    ########################### L O G I C S ####################################
 
     def print(self):
         if self.textarea.get(1.0, tk.END) == '\n':
@@ -845,16 +737,16 @@ class InitialPage(Page):
 
     def choice(self):
 
-        if self.radio_var.get() == 'load':  # 'loading' radio button selected
-            self.constante_lbl.config(text='Const')
-            self.net_displacement_lbl.config(text='Net disp')
-            self.light_ship_lbl.config(text='Lightship')
-            self.net_displacement_btn.config(text='Const')
-        elif self.radio_var.get() == 'discharge':  # 'discharging' radio button selected
-            self.constante_lbl.config(text='Cargo + Const')
-            self.net_displacement_lbl.config(text='Load disp')
-            self.light_ship_lbl.config(text='Lightship')
-            self.net_displacement_btn.config(text='Load Disp')
+        if self.radio_var.get() == 'discharge':  # 'loading' radio button selected
+            self.cargo_lbl.config(text='Const')
+            self.load_displacement_lbl.config(text='Net disp')
+            self.net_init_displacement_lbl.config(text='Lightship')
+            self.load_displacement_btn.config(text='Const')
+        elif self.radio_var.get() == 'load':  # 'discharging' radio button selected
+            self.cargo_lbl.config(text='Cargo + Const')
+            self.load_displacement_lbl.config(text='Load disp')
+            self.net_init_displacement_lbl.config(text='Lightship')
+            self.load_displacement_btn.config(text='Load Disp')
 
     def clear(self):
 
@@ -878,24 +770,24 @@ class InitialPage(Page):
         self.dis_cor_trim_entry.configure(state=NORMAL)
         self.dis_cor_density_entry.configure(state=NORMAL)
         self.total_deductibles_entry.configure(state=NORMAL)
-        self.net_displacement_entry.configure(state=NORMAL)
-        self.constante_entry.configure(state=NORMAL)
+        self.load_displacement_entry.configure(state=NORMAL)
+        self.cargo_entry.configure(state=NORMAL)
 
-        self.vessel_entry.delete(0, tk.END)
-        self.flag_entry.delete(0, tk.END)
-        self.registry_entry.delete(0, tk.END)
-        self.imo_entry.delete(0, tk.END)
-        self.cargo_entry.delete(0, tk.END)
-        self.client_entry.delete(0, tk.END)
-        self.quantity_entry.delete(0, tk.END)
-        self.load_port_entry.delete(0, tk.END)
-        self.disch_port_entry.delete(0, tk.END)
-        self.arrival_time.delete(0, tk.END)
-        self.birthing_time.delete(0, tk.END)
-        self.initialds_time.delete(0, tk.END)
-        self.cal1.delete(0, tk.END)
-        self.cal2.delete(0, tk.END)
-        self.cal3.delete(0, tk.END)
+        self.vessel_Arrival_entry.delete(0, tk.END)
+        self.notice_tendered_entry.delete(0, tk.END)
+        self.drop_anchor_entry.delete(0, tk.END)
+        self.anchor_up_entry.delete(0, tk.END)
+        self.pilot_onboard_entry.delete(0, tk.END)
+        self.first_line_entry.delete(0, tk.END)
+        self.free_pratic_entry.delete(0, tk.END)
+        self.all_fast_entry.delete(0, tk.END)
+        self.surveyor_onboard_entry.delete(0, tk.END)
+        self.init_survey_start_entry.delete(0, tk.END)
+        self.init_survey_compl_entry.delete(0, tk.END)
+        self.start_operations_entry.delete(0, tk.END)
+        self.comp_operations_entry.delete(0, tk.END)
+        self.documents_onboard_entry.delete(0, tk.END)
+        self.vessel_sailed_entry.delete(0, tk.END)
 
         self.lbp_entry.delete(0, tk.END)
         self.draft_for_port_entry.delete(0, tk.END)
@@ -958,11 +850,11 @@ class InitialPage(Page):
         self.lub_qty_entry.delete(0, tk.END)
         self.slops_qty_entry.delete(0, tk.END)
         self.others_qty_entry.delete(0, tk.END)
-        self.net_displacement_entry.delete(0, tk.END)
-        self.light_ship_entry.delete(0, tk.END)
+        self.load_displacement_entry.delete(0, tk.END)
+        self.net_init_displacement_entry.delete(0, tk.END)
         self.correct_displacement_entry.delete(0, tk.END)
         self.total_deductibles_entry.delete(0, tk.END)
-        self.constante_entry.delete(0, tk.END)
+        self.cargo_entry.delete(0, tk.END)
 
         self.draft_number_entry.delete(0, tk.END)
         self.textarea.delete(1.0, tk.END)
@@ -987,49 +879,66 @@ class InitialPage(Page):
         self.dis_cor_trim_entry.configure(state=DISABLED)
         self.dis_cor_density_entry.configure(state=DISABLED)
         self.total_deductibles_entry.configure(state=DISABLED)
-        self.net_displacement_entry.configure(state=DISABLED)
-        self.constante_entry.configure(state=DISABLED)
+        self.load_displacement_entry.configure(state=DISABLED)
+        self.cargo_entry.configure(state=DISABLED)
 
-        self.vessel_entry.focus()
+        self.vessel_Arrival_entry.focus()
 
-    def net_displacement(self):
+    def load_displacement(self):
+        """Calcule le load displacement et le cargo selon l'option choisie"""
+        self.load_displacement_entry.configure(state=NORMAL)
+        self.cargo_entry.configure(state=NORMAL)
 
-        self.net_displacement_entry.configure(state=NORMAL)
-        # self.load_displacement_entry.configure(state=NORMAL)
-        self.constante_entry.configure(state=NORMAL)
+        try:
+            total_deductibles = float(self.total_deductibles_entry.get())
+            corrected_displacement = float(self.dis_cor_density_entry.get())
+            net_init_displacement = float(
+                self.net_init_displacement_entry.get())
 
-        total_deductibles = self.total_deductibles_entry.get()
-        corrected_displacement_for_density = self.dis_cor_density_entry.get()
-        net_displacement_init = ''
-        light_ship = self.light_ship_entry.get()
-        constant = ''
+            # Différent calcul selon l'option choisie
+            if self.radio_var.get() == 'load':
+                # Pour Loading
+                load_displacement = round(
+                    corrected_displacement - total_deductibles, 3)
+                cargo = round(load_displacement - net_init_displacement, 3)
+            elif self.radio_var.get() == 'discharge':
+                # Pour Discharging
+                net_displacement = round(
+                    corrected_displacement - total_deductibles, 3)
+                cargo = round(net_init_displacement - net_displacement, 3)
+            else:
+                messagebox.showerror(
+                    'Error', 'Please select an operation type (Loading/Discharging)')
+                return
 
-        if total_deductibles == '' or corrected_displacement_for_density == '' or light_ship == '':
-            messagebox.showerror('Error', 'The total deductibles the corrected displacement\
-             for density or the light ship is missed')
-        else:
-            total_deductibles = float(total_deductibles)
-            corrected_displacement_for_density = float(
-                corrected_displacement_for_density)
-            light_ship = float(light_ship)
-            net_displacement_init = round(
-                corrected_displacement_for_density - total_deductibles, 3)
-            constant = round(net_displacement_init - light_ship)
+            # Affichage des résultats
+            self.load_displacement_entry.delete(0, tk.END)
+            self.cargo_entry.delete(0, tk.END)
 
-        self.net_displacement_entry.delete(0, tk.END)
-        self.constante_entry.delete(0, tk.END)
-        # self.load_displacement_entry.delete(0, tk.END)
-        self.net_displacement_entry.insert(tk.END, f'{net_displacement_init}')
-        self.constante_entry.insert(tk.END, f'{constant}')
-        # self.load_displacement_entry.insert(tk.END, f'{net_displacement}')
-        self.net_displacement_entry.configure(state=DISABLED)
-        self.constante_entry.configure(state=DISABLED)
+            if self.radio_var.get() == 'load':
+                self.load_displacement_entry.insert(
+                    tk.END, f'{load_displacement}')
+            else:
+                self.load_displacement_entry.insert(
+                    tk.END, f'{net_displacement}')
 
-        messagebox.showinfo(
-            'Success', "we get the net displacement & the calculated constant ")
+            self.cargo_entry.insert(tk.END, f'{cargo}')
+
+            messagebox.showinfo(
+                'Success', "Calculation completed successfully")
+
+        except ValueError:
+            messagebox.showerror(
+                'Error', 'Please ensure all required fields have valid numeric values')
+        except Exception as e:
+            messagebox.showerror('Error', f'An error occurred: {str(e)}')
+        finally:
+            self.load_displacement_entry.configure(state=DISABLED)
+            self.cargo_entry.configure(state=DISABLED)
 
     def total_deductibles(self):
         self.total_deductibles_entry.configure(state=NORMAL)
+
         ballast = self.ballast_qty_entry.get()
         fuel = self.fuel_qty_entry.get()
         gas_oil = self.go_qty_entry.get()
@@ -1060,6 +969,7 @@ class InitialPage(Page):
 
     def density_correction(self):
         self.dis_cor_density_entry.configure(state=NORMAL)
+
         table_density = self.density_table_entry.get()
         dock_density = self.density_dock_entry.get()
         corrected_displacement_for_trim = self.dis_cor_trim_entry.get()
@@ -1081,6 +991,7 @@ class InitialPage(Page):
             tk.END, f'{corrected_displacement_for_density}')
         messagebox.showinfo(
             'Success', 'Great now you corrected the displacement for the density')
+
         self.dis_cor_density_entry.configure(state=DISABLED)
 
     def trim_correction(self):
@@ -1129,13 +1040,14 @@ class InitialPage(Page):
         self.second_trim_corr_entry.configure(state=DISABLED)
 
     def save_data(self):
-        if self.vessel_entry.get() == '' or self.flag_entry.get() == '' or \
-                self.registry_entry.get() == '' or self.imo_entry.get() == '' or \
-                self.cargo_entry.get() == '' or self.client_entry.get() == '' or \
-                self.quantity_entry.get() == '' or self.load_port_entry.get() == '' or \
-                self.disch_port_entry.get() == '' or self.cal1.get() == '' or self.cal2.get() == '' or \
-                self.cal3.get() == '' or self.arrival_time.get() == '' or self.birthing_time.get() == '' or \
-                self.initialds_time.get() == '':
+        if self.vessel_Arrival_entry.get() == '' or self.notice_tendered_entry.get() == '' or \
+                self.drop_anchor_entry.get() == '' or self.anchor_up_entry.get() == '' or \
+                self.pilot_onboard_entry.get() == '' or self.first_line_entry.get() == '' or \
+                self.free_pratic_entry.get() == '' or self.all_fast_entry.get() == '' or \
+                self.surveyor_onboard_entry.get() == '' or self.init_survey_start_entry.get() == '' or \
+                self.init_survey_compl_entry.get() == '' or self.start_operations_entry.get() == '' or \
+                self.comp_operations_entry.get() == '' or self.documents_onboard_entry.get() == '' or \
+                self.vessel_sailed_entry.get() == '':
             messagebox.showerror(
                 'Error', "Vessel's Information are all required")
         elif self.lbp_entry.get() == '' or self.draft_for_star_entry.get() == '' or \
@@ -1154,28 +1066,33 @@ class InitialPage(Page):
         else:
             self.textarea.delete(1.0, tk.END)
 
-            self.textarea.insert(tk.END, '***Initial Draft Survey ***\n')
+            self.textarea.insert(tk.END, '***Final Draft Survey ***\n')
             self.textarea.insert(
-                tk.END, f'\nVessel: {self.vessel_entry.get()}\tSGS_{draft_number}\n')
-            self.textarea.insert(tk.END, f'Nation: {self.flag_entry.get()}\n')
+                tk.END, f'\nE.O.S.P: {self.vessel_Arrival_entry.get()}\tSGS_{draft_number}\n')
             self.textarea.insert(
-                tk.END, f'Reg.Port: {self.registry_entry.get()}\n')
-            self.textarea.insert(tk.END, f'IMO: {self.imo_entry.get()}\n')
-            self.textarea.insert(tk.END, f'Cargo: {self.cargo_entry.get()}\n')
+                tk.END, f'N.O.R: {self.notice_tendered_entry.get()}\n')
             self.textarea.insert(
-                tk.END, f'Client: {self.client_entry.get()}\n')
+                tk.END, f'Drop Anchor: {self.drop_anchor_entry.get()}\n')
             self.textarea.insert(
-                tk.END, f'Quantity: {self.quantity_entry.get()} Mt\n')
+                tk.END, f'Anchor up: {self.anchor_up_entry.get()}\n')
             self.textarea.insert(
-                tk.END, f'Load_port: {self.load_port_entry.get()}\n')
+                tk.END, f'Pilot onboard: {self.pilot_onboard_entry.get()}\n')
             self.textarea.insert(
-                tk.END, f'Dis_port: {self.disch_port_entry.get()}\n')
+                tk.END, f'First line: {self.first_line_entry.get()}\n')
             self.textarea.insert(
-                tk.END, f'Arrival: {self.cal1.get()}\t at : {self.arrival_time.get()}\n')
+                tk.END, f'S.O.B: {self.surveyor_onboard_entry.get()} \n')
             self.textarea.insert(
-                tk.END, f'Birthing: {self.cal2.get()}\t at : {self.birthing_time.get()}\n')
+                tk.END, f'Start draft: {self.init_survey_start_entry.get()}\n')
             self.textarea.insert(
-                tk.END, f'Survey: {self.cal3.get()}\t at : {self.initialds_time.get()}\n')
+                tk.END, f'Finish draft: {self.init_survey_compl_entry.get()}\n')
+            self.textarea.insert(
+                tk.END, f'Start operation: {self.start_operations_entry.get()}\n')
+            self.textarea.insert(
+                tk.END, f'Finish operation: {self.comp_operations_entry.get()}\n')
+            self.textarea.insert(
+                tk.END, f'D.O.B: {self.documents_onboard_entry.get()}\n')
+            self.textarea.insert(
+                tk.END, f'Sailed: {self.vessel_sailed_entry.get()}\n')
             self.textarea.insert(tk.END, '\n===========================\n')
             self.textarea.insert(tk.END, 'Observed Draft\n')
             self.textarea.insert(tk.END,
@@ -1209,9 +1126,9 @@ class InitialPage(Page):
             self.textarea.insert(
                 tk.END, f'Total deductibles: {self.total_deductibles_entry.get()} mt\n')
             self.textarea.insert(
-                tk.END, f'Net Displacement: {self.net_displacement_entry.get()} mt\n')
+                tk.END, f'Net Displacement: {self.load_displacement_entry.get()} mt\n')
             self.textarea.insert(
-                tk.END, f'Cargo + const: {self.constante_entry.get()} mt\n')
+                tk.END, f'Cargo + const: {self.cargo_entry.get()} mt\n')
 
             self.draft_number_entry.insert(tk.END, f'SGS_{draft_number}')
             self.save()
@@ -1229,11 +1146,10 @@ class InitialPage(Page):
                 'Success', f'The initial draft survey number:f{draft_number} is saved successfully')
 
     def delta_mtc(self):
-        # Mtc 1
         self.mtc1_entry.configure(state=NORMAL)
         self.mtc2_entry.configure(state=NORMAL)
         self.delta_mtc_entry.configure(state=NORMAL)
-
+        # Mtc 1
         d_plus50_sup = self.d_plus50_sup_entry.get()
         d_plus50_inf = self.d_plus50_inf_entry.get()
         d_plus50 = self.d_plus50_entry.get()
@@ -1262,7 +1178,6 @@ class InitialPage(Page):
             self.mtc1_entry.insert(tk.END, "Missing values")
 
         # Mtc 2
-
         d_moins50_sup = self.d_moins50_sup_entry.get()
         d_moins50_inf = self.d_moins50_inf_entry.get()
         d_moins50 = self.d_moins50_entry.get()
@@ -1399,12 +1314,10 @@ class InitialPage(Page):
             except ValueError:
                 self.init_lcf_entry.delete(0, tk.END)
                 self.init_lcf_entry.insert(tk.END, "Invalid value")
-
-        self.quarter_mean_entry.configure(state=DISABLED)
+        self.init_draft_entry.configure(state=DISABLED)
         self.init_displacement_entry.configure(state=DISABLED)
         self.init_tpc_entry.configure(state=DISABLED)
         self.init_lcf_entry.configure(state=DISABLED)
-        self.init_draft_entry.configure(state=DISABLED)
 
         # self.text_lbl.configure(text='Interpolation completed')
 
@@ -1460,7 +1373,6 @@ class InitialPage(Page):
     def calculate_values(self):
         self.obs_trim_entry.configure(state=NORMAL)
         self.lbm_entry.configure(state=NORMAL)
-        self.init_draft_entry.configure(state=NORMAL)
         self.corrected_for_entry.configure(state=NORMAL)
         self.corrected_aft_entry.configure(state=NORMAL)
         self.corrected_mid_entry.configure(state=NORMAL)
@@ -1511,7 +1423,6 @@ class InitialPage(Page):
                                   self.position_from_aft_pp), 2)
 
         ########################
-
         # Draft observed
         draft_for = (self.draft_for_star + self.draft_for_port) / 2
         draft_aft = (self.draft_aft_star + self.draft_aft_port) / 2
@@ -1968,30 +1879,30 @@ class FinalPage(Page):
         self.text_lbl = tk.Label(
             frame, text="", foreground='gold', background='gray12')
 
-        self.draft_sup_entry = tk.Entry(frame, width=7, background='gray49', font=('times new roman', 10, 'bold'),
-                                        fg="azure")
-        self.init_draft_entry = tk.Entry(frame, width=7, background='gray49', font=('times new roman', 10, 'bold'),
-                                         fg="azure")
-        self.draft_inf_entry = tk.Entry(frame, width=7, background='gray49', font=('times new roman', 10, 'bold'),
-                                        fg="azure")
+        self.draft_sup_entry = tk.Entry(
+            frame, width=7, background='gray49', font=('times new roman', 10, 'bold'), fg="cyan")
+        self.init_draft_entry = tk.Entry(
+            frame, width=7, background='gray49', font=('times new roman', 10, 'bold'), fg="cyan")
+        self.draft_inf_entry = tk.Entry(
+            frame, width=7, background='gray49', font=('times new roman', 10, 'bold'), fg="cyan")
         self.displacement_sup_entry = tk.Entry(frame, width=7, background='gray49',
-                                               font=('times new roman', 10, 'bold'), fg="azure")
+                                               font=('times new roman', 10, 'bold'), fg="cyan")
         self.init_displacement_entry = tk.Entry(
-            frame, width=7, state='normal', background='gray44', font=('times new roman', 10, 'bold'), fg="azure")
+            frame, width=7, state='normal', background='gray44', font=('times new roman', 10, 'bold'), fg="cyan")
         self.displacement_inf_entry = tk.Entry(frame, width=7, background='gray49',
-                                               font=('times new roman', 10, 'bold'), fg="azure")
+                                               font=('times new roman', 10, 'bold'), fg="cyan")
         self.tpc_sup_entry = tk.Entry(frame, width=7, background='gray49', font=('times new roman', 10, 'bold'),
-                                      fg="azure")
+                                      fg="cyan")
         self.init_tpc_entry = tk.Entry(frame, width=7, state='normal', background='gray44',
-                                       font=('times new roman', 10, 'bold'), fg="azure")
+                                       font=('times new roman', 10, 'bold'), fg="cyan")
         self.tpc_inf_entry = tk.Entry(frame, width=7, background='gray49', font=('times new roman', 10, 'bold'),
-                                      fg="azure")
+                                      fg="cyan")
         self.lcf_sup_entry = tk.Entry(frame, width=5, background='gray49', font=('times new roman', 10, 'bold'),
-                                      fg="azure")
+                                      fg="cyan")
         self.init_lcf_entry = tk.Entry(frame, width=5, state='normal', background='gray44',
-                                       font=('times new roman', 10, 'bold'), fg="azure")
+                                       font=('times new roman', 10, 'bold'), fg="cyan")
         self.lcf_inf_entry = tk.Entry(frame, width=5, background='gray49', font=('times new roman', 10, 'bold'),
-                                      fg="azure")
+                                      fg="cyan")
 
         # Create the interpolation button
         self.interpolation_button = tk.Button(
@@ -2313,7 +2224,106 @@ class FinalPage(Page):
 
         self.textarea = tk.Text(frame4,
                                 height=60, width=37,
-                                yscrollcommand=Scrollbar.set)
+                                yscrollcommand=self.scrollbar.set)
+        self.textarea.pack()
+        self.scrollbar.config(command=self.textarea.yview)
+
+    ########################### L O G I C S ####################################
+
+    def print(self):
+        if self.textarea.get(1.0, tk.END) == '\n':
+            messagebox.showerror(
+                'Error', 'There is no data in the textarea to print')
+        else:
+            file = tempfile.mktemp('.txt')
+            open(file, 'w').write(self.textarea.get(1.0, tk.END))
+            os.startfile(file, 'print')
+
+    def search_data(self):
+        for i in os.listdir('Output/'):
+            if i.split('.')[0] == self.draft_number_entry.get():
+                f = open(f'Output/{i}', 'r')
+                self.textarea.delete(1.0, tk.END)
+                for data in f:
+                    self.textarea.insert(tk.END, data)
+                f.close()
+                break
+        else:
+            messagebox.showerror('Error', 'Invalid Draft Number')
+
+    def choice(self):
+
+        if self.radio_var.get() == 'discharge':  # 'loading' radio button selected
+            self.cargo_lbl.config(text='Const')
+            self.load_displacement_lbl.config(text='Net disp')
+            self.net_init_displacement_lbl.config(text='Lightship')
+            self.load_displacement_btn.config(text='Const')
+        elif self.radio_var.get() == 'load':  # 'discharging' radio button selected
+            self.cargo_lbl.config(text='Cargo + Const')
+            self.load_displacement_lbl.config(text='Load disp')
+            self.net_init_displacement_lbl.config(text='Lightship')
+            self.load_displacement_btn.config(text='Load Disp')
+
+    def clear(self):
+
+        self.lbm_entry.configure(state=NORMAL)
+        self.obs_trim_entry.configure(state=NORMAL)
+        self.corrected_for_entry.configure(state=NORMAL)
+        self.corrected_aft_entry.configure(state=NORMAL)
+        self.corrected_mid_entry.configure(state=NORMAL)
+        self.mean_for_aft_entry.configure(state=NORMAL)
+        self.mean_of_mean_entry.configure(state=NORMAL)
+        self.quarter_mean_entry.configure(state=NORMAL)
+        self.init_draft_entry.configure(state=NORMAL)
+        self.init_tpc_entry.configure(state=NORMAL)
+        self.init_displacement_entry.configure(state=NORMAL)
+        self.init_lcf_entry.configure(state=NORMAL)
+        self.mtc1_entry.configure(state=NORMAL)
+        self.mtc2_entry.configure(state=NORMAL)
+        self.delta_mtc_entry.configure(state=NORMAL)
+        self.first_trim_corr_entry.configure(state=NORMAL)
+        self.second_trim_corr_entry.configure(state=NORMAL)
+        self.dis_cor_trim_entry.configure(state=NORMAL)
+        self.dis_cor_density_entry.configure(state=NORMAL)
+        self.total_deductibles_entry.configure(state=NORMAL)
+        self.load_displacement_entry.configure(state=NORMAL)
+        self.cargo_entry.configure(state=NORMAL)
+
+        self.vessel_Arrival_entry.delete(0, tk.END)
+        self.notice_tendered_entry.delete(0, tk.END)
+        self.drop_anchor_entry.delete(0, tk.END)
+        self.anchor_up_entry.delete(0, tk.END)
+        self.pilot_onboard_entry.delete(0, tk.END)
+        self.first_line_entry.delete(0, tk.END)
+        self.free_pratic_entry.delete(0, tk.END)
+        self.all_fast_entry.delete(0, tk.END)
+        self.surveyor_onboard_entry.delete(0, tk.END)
+        self.init_survey_start_entry.delete(0, tk.END)
+        self.init_survey_compl_entry.delete(0, tk.END)
+        self.start_operations_entry.delete(0, tk.END)
+        self.comp_operations_entry.delete(0, tk.END)
+        self.documents_onboard_entry.delete(0, tk.END)
+        self.vessel_sailed_entry.delete(0, tk.END)
+
+        self.lbp_entry.delete(0, tk.END)
+        self.draft_for_port_entry.delete(0, tk.END)
+        self.draft_for_star_entry.delete(0, tk.END)
+        self.draft_aft_port_entry.delete(0, tk.END)
+        self.draft_aft_star_entry.delete(0, tk.END)
+        self.draft_mid_port_entry.delete(0, tk.END)
+        anchor = 'center'
+        background = 'gray12'
+        fg = 'gold'
+
+        self.textarea_lbl.pack(fill='x')
+
+        # Scrollbar
+        self.scrollbar = tk.Scrollbar(frame4, orient='vertical')
+        self.scrollbar.pack(side='right', fill='y')
+
+        self.textarea = tk.Text(frame4,
+                                height=60, width=37,
+                                yscrollcommand=self.scrollbar.set)
         self.textarea.pack()
         self.scrollbar.config(command=self.textarea.yview)
 
@@ -3130,6 +3140,9 @@ class FinalPage(Page):
         return self.frame_content
 
 
+pass
+
+
 class BallastPage(Page):
     def __init__(self, master, **kw):
         super().__init__(master, **kw)
@@ -3149,23 +3162,154 @@ class BallastPage(Page):
         return self.frame_content
 
 
+pass
+
+
 class RecapPage(Page):
     def __init__(self, master, **kw):
         super().__init__(master, **kw)
         self.create_frame_content().pack(fill=tk.BOTH, expand=True)
 
     def create_frame_content(self) -> ttk.Frame:
-        # create widget specific for the setting(Audio)
-        # and returns a ttk.Frame
         self.frame_content = ttk.Frame(self)
 
-        # content:
-        lbl_title = ttk.Label(self.frame_content,
-                              text='This is the Recapitulation page')
-        lbl_title.pack()
-        # TODO add more widget here
+        # Frame principal
+        main_frame = tk.LabelFrame(self.frame_content,
+                                   text="Récapitulation Draft Survey",
+                                   font=('times new roman', 12, 'bold'),
+                                   background='gray12',
+                                   fg='gold',
+                                   bd=6,
+                                   relief='groove')
+        main_frame.pack(fill='both', expand=True, padx=5, pady=5)
+
+        # Frame pour les données initiales
+        init_frame = tk.LabelFrame(main_frame,
+                                   text="Initial Draft Survey",
+                                   font=('times new roman', 12, 'bold'),
+                                   background='gray12',
+                                   fg='gold')
+        init_frame.pack(fill='x', padx=5, pady=5)
+
+        # Labels et Entries pour Initial Draft
+        self.init_option_lbl = tk.Label(init_frame, text="Option:",
+                                        background='gray12', fg='gold')
+        self.init_option_entry = tk.Entry(init_frame, width=15)
+        self.init_disp_lbl = tk.Label(init_frame, text="Net/Load Displacement:",
+                                      background='gray12', fg='gold')
+        self.init_disp_entry = tk.Entry(init_frame, width=15)
+
+        self.init_option_lbl.grid(row=0, column=0, padx=5, pady=5)
+        self.init_option_entry.grid(row=0, column=1, padx=5, pady=5)
+        self.init_disp_lbl.grid(row=0, column=2, padx=5, pady=5)
+        self.init_disp_entry.grid(row=0, column=3, padx=5, pady=5)
+
+        # Frame pour les données finales
+        final_frame = tk.LabelFrame(main_frame,
+                                    text="Final Draft Survey",
+                                    font=('times new roman', 12, 'bold'),
+                                    background='gray12',
+                                    fg='gold')
+        final_frame.pack(fill='x', padx=5, pady=5)
+
+        # Labels et Entries pour Final Draft
+        self.final_option_lbl = tk.Label(final_frame, text="Option:",
+                                         background='gray12', fg='gold')
+        self.final_option_entry = tk.Entry(final_frame, width=15)
+        self.final_disp_lbl = tk.Label(final_frame, text="Net/Load Displacement:",
+                                       background='gray12', fg='gold')
+        self.final_disp_entry = tk.Entry(final_frame, width=15)
+
+        self.final_option_lbl.grid(row=0, column=0, padx=5, pady=5)
+        self.final_option_entry.grid(row=0, column=1, padx=5, pady=5)
+        self.final_disp_lbl.grid(row=0, column=2, padx=5, pady=5)
+        self.final_disp_entry.grid(row=0, column=3, padx=5, pady=5)
+
+        # Frame pour le résultat
+        result_frame = tk.LabelFrame(main_frame,
+                                     text="Résultat",
+                                     font=('times new roman', 12, 'bold'),
+                                     background='gray12',
+                                     fg='gold')
+        result_frame.pack(fill='x', padx=5, pady=5)
+
+        # Labels et Entries pour le résultat
+        self.cargo_qty_lbl = tk.Label(result_frame, text="Quantité chargée/déchargée:",
+                                      background='gray12', fg='gold')
+        self.cargo_qty_entry = tk.Entry(
+            result_frame, width=15, state='readonly')
+
+        self.cargo_qty_lbl.grid(row=0, column=0, padx=5, pady=5)
+        self.cargo_qty_entry.grid(row=0, column=1, padx=5, pady=5)
+
+        # Boutons
+        btn_frame = tk.Frame(main_frame, background='gray12')
+        btn_frame.pack(fill='x', padx=5, pady=5)
+
+        self.calculate_btn = tk.Button(btn_frame,
+                                       text="Calculer",
+                                       command=self.calculate_cargo,
+                                       bg='black',
+                                       fg='gold')
+        self.clear_btn = tk.Button(btn_frame,
+                                   text="Effacer",
+                                   command=self.clear_fields,
+                                   bg='black',
+                                   fg='gold')
+
+        self.calculate_btn.pack(side='left', padx=5)
+        self.clear_btn.pack(side='left', padx=5)
 
         return self.frame_content
+
+    def calculate_cargo(self):
+        """Calcule la quantité chargée ou déchargée"""
+        try:
+            init_option = self.init_option_entry.get()
+            final_option = self.final_option_entry.get()
+            init_disp = float(self.init_disp_entry.get())
+            final_disp = float(self.final_disp_entry.get())
+
+            # Validation des options
+            if init_option not in ['Loading', 'Discharging'] or \
+               final_option not in ['Loading', 'Discharging']:
+                messagebox.showerror("Erreur", "Options invalides")
+                return
+
+            # Calcul selon le scénario
+            if init_option == 'Loading' and final_option == 'Loading':
+                cargo_qty = abs(final_disp - init_disp)
+            elif init_option == 'Discharging' and final_option == 'Discharging':
+                cargo_qty = abs(init_disp - final_disp)
+            else:
+                messagebox.showerror(
+                    "Erreur", "Combinaison d'options invalide")
+                return
+
+            # Affichage du résultat
+            self.cargo_qty_entry.configure(state='normal')
+            self.cargo_qty_entry.delete(0, tk.END)
+            self.cargo_qty_entry.insert(0, f"{cargo_qty:.3f}")
+            self.cargo_qty_entry.configure(state='readonly')
+
+        except ValueError:
+            messagebox.showerror(
+                "Erreur", "Veuillez entrer des valeurs numériques valides")
+        except Exception as e:
+            messagebox.showerror(
+                "Erreur", f"Une erreur s'est produite: {str(e)}")
+
+    def clear_fields(self):
+        """Efface tous les champs"""
+        self.init_option_entry.delete(0, tk.END)
+        self.init_disp_entry.delete(0, tk.END)
+        self.final_option_entry.delete(0, tk.END)
+        self.final_disp_entry.delete(0, tk.END)
+        self.cargo_qty_entry.configure(state='normal')
+        self.cargo_qty_entry.delete(0, tk.END)
+        self.cargo_qty_entry.configure(state='readonly')
+
+        pass
 
 
 if __name__ == "__main__":
