@@ -156,20 +156,13 @@ if __name__ == "__main__":
                       setting_name='Recap',
                       page=RecapPage)
     settings.pack(fill='both', expand=True)
-    settings.add_page(image_path='ship.png',
-                      setting_name='Recap',
-                      page=RecapPage)
-    settings.pack(fill='both', expand=True)
 
     root.mainloop()
 
 
-"""
- ToDo 
--Utiliser un cache pour les images.
--Éviter la duplication des appels à pack() et à add_page().
--Corriger la duplication de la page "Recap".
--Déplacer le code principal dans une fonction main().
--Ne pas appeler pack dans add_setting.
-
-"""
+# ToDo 
+# -Utiliser un cache pour les images.
+# -Éviter la duplication des appels à pack() et à add_page().
+# -Corriger la duplication de la page "Recap".
+# -Déplacer le code principal dans une fonction main().
+# -Ne pas appeler pack dans add_setting.
