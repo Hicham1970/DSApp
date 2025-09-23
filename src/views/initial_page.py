@@ -1,9 +1,9 @@
 import tkinter as tk
-from tkinter import messagebox, ttk, filedialog
-import json
+from tkinter import filedialog, messagebox, ttk
 
 from src.controllers.survey_controller import SurveyController
 from src.utils.validators import DraftValidator
+
 from .base_page import BasePage
 
 
@@ -12,11 +12,10 @@ class InitialPage(BasePage):
 
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
-        self.controller = SurveyController()
-        self.validator = DraftValidator()
-
         # Initialize all entry variables
         self.entries = {}
+        self.controller = SurveyController()
+        self.validator = DraftValidator()
 
         # Vessel information entries
         self.vessel_name_entry = None
@@ -43,6 +42,17 @@ class InitialPage(BasePage):
         self.trim_observed_entry = None
         self.dock_density_entry = None
 
+        # Bunker data entries
+        self.ballast_entry = None
+        self.fuel_entry = None
+        self.gas_oil_entry = None
+        self.lub_oil_entry = None
+        self.slops_entry = None
+        self.others_entry = None
+
+        # Operation type
+        self.operation_type = tk.StringVar(value='load')
+
         # Results display
         self.results_text = None
 
@@ -60,17 +70,20 @@ class InitialPage(BasePage):
         # Create tabs
         self.vessel_tab = ttk.Frame(self.notebook)
         self.draft_tab = ttk.Frame(self.notebook)
+        self.bunker_tab = ttk.Frame(self.notebook)
         self.calculation_tab = ttk.Frame(self.notebook)
         self.results_tab = ttk.Frame(self.notebook)
 
         self.notebook.add(self.vessel_tab, text='Vessel Info')
         self.notebook.add(self.draft_tab, text='Draft Readings')
+        self.notebook.add(self.bunker_tab, text='Bunker & Ballast')
         self.notebook.add(self.calculation_tab, text='Calculations')
         self.notebook.add(self.results_tab, text='Results')
 
         # Create content for each tab
         self._create_vessel_tab()
         self._create_draft_tab()
+        self._create_bunker_tab()
         self._create_calculation_tab()
         self._create_results_tab()
 
@@ -83,8 +96,10 @@ class InitialPage(BasePage):
         frame.pack(fill='both', expand=True, padx=10, pady=5)
 
         # Validation commands
-        vcmd_numeric = (self.register(DraftValidator.validate_numeric_entry_callback), '%P')
-        vcmd_positive = (self.register(DraftValidator.validate_positive_numeric_entry_callback), '%P')
+        vcmd_numeric = (self.register(
+            DraftValidator.validate_numeric_entry_callback), '%P')
+        vcmd_positive = (self.register(
+            DraftValidator.validate_positive_numeric_entry_callback), '%P')
 
         # Vessel name
         self.vessel_name_entry = self.create_labeled_entry(
@@ -107,7 +122,8 @@ class InitialPage(BasePage):
         frame = ttk.Frame(self.draft_tab)
         frame.pack(fill='both', expand=True, padx=10, pady=5)
 
-        vcmd_numeric = (self.register(DraftValidator.validate_numeric_entry_callback), '%P')
+        vcmd_numeric = (self.register(
+            DraftValidator.validate_numeric_entry_callback), '%P')
 
         # Observed drafts section
         observed_frame = ttk.LabelFrame(frame, text="Observed Drafts (meters)")
@@ -193,30 +209,44 @@ class InitialPage(BasePage):
             validate='key', validatecommand=vcmd_numeric, width=10
         )[1]
 
+    def _create_bunker_tab(self):
+        """Create bunker and ballast data tab"""
+        frame = ttk.Frame(self.bunker_tab)
+        frame.pack(fill='both', expand=True, padx=10, pady=5)
+        vcmd_numeric = (self.register(
+            DraftValidator.validate_numeric_entry_callback), '%P')
+
+        self.ballast_entry = self.create_labeled_entry(
+            frame, "Ballast (mt):", 0, 0, validate='key', validatecommand=vcmd_numeric)[1]
+        self.fuel_entry = self.create_labeled_entry(
+            frame, "Fuel (mt):", 1, 0, validate='key', validatecommand=vcmd_numeric)[1]
+        self.gas_oil_entry = self.create_labeled_entry(
+            frame, "Gas Oil (mt):", 2, 0, validate='key', validatecommand=vcmd_numeric)[1]
+        self.lub_oil_entry = self.create_labeled_entry(
+            frame, "Lub Oil (mt):", 3, 0, validate='key', validatecommand=vcmd_numeric)[1]
+        self.slops_entry = self.create_labeled_entry(
+            frame, "Slops (mt):", 4, 0, validate='key', validatecommand=vcmd_numeric)[1]
+        self.others_entry = self.create_labeled_entry(
+            frame, "Others (mt):", 5, 0, validate='key', validatecommand=vcmd_numeric)[1]
+
+        op_frame = ttk.LabelFrame(frame, text="Operation Type")
+        op_frame.grid(row=6, column=0, columnspan=2, pady=10, sticky='w')
+        ttk.Radiobutton(op_frame, text="Loading", variable=self.operation_type,
+                        value='load').pack(side='left', padx=5)
+        ttk.Radiobutton(op_frame, text="Discharging", variable=self.operation_type,
+                        value='discharge').pack(side='left', padx=5)
+
     def _create_calculation_tab(self):
         """Create calculations tab"""
         frame = ttk.Frame(self.calculation_tab)
         frame.pack(fill='both', expand=True, padx=10, pady=5)
 
-        # Configure frame grid weights
-        frame.grid_rowconfigure(0, weight=1)
-        frame.grid_columnconfigure(0, weight=1)
-
         # Interpolation data
         interp_frame = ttk.LabelFrame(frame, text="Interpolation Data")
         interp_frame.pack(fill='x', pady=5)
 
-        # Configure interpolation frame grid
-        interp_frame.grid_rowconfigure(0, weight=1)
-        interp_frame.grid_rowconfigure(1, weight=1)
-        interp_frame.grid_rowconfigure(2, weight=1)
-        interp_frame.grid_rowconfigure(3, weight=1)
-        interp_frame.grid_columnconfigure(0, weight=1)
-        interp_frame.grid_columnconfigure(1, weight=1)
-        interp_frame.grid_columnconfigure(2, weight=1)
-        interp_frame.grid_columnconfigure(3, weight=1)
-
-        vcmd_numeric = (self.register(DraftValidator.validate_numeric_entry_callback), '%P')
+        vcmd_numeric = (self.register(
+            DraftValidator.validate_numeric_entry_callback), '%P')
 
         # Draft values
         self.entries['draft_sup'] = self.create_labeled_entry(
@@ -265,17 +295,6 @@ class InitialPage(BasePage):
         # MTC calculation data
         mtc_frame = ttk.LabelFrame(frame, text="MTC Calculation Data")
         mtc_frame.pack(fill='x', pady=5)
-
-        # Configure MTC frame grid
-        mtc_frame.grid_rowconfigure(0, weight=1)
-        mtc_frame.grid_rowconfigure(1, weight=1)
-        mtc_frame.grid_rowconfigure(2, weight=1)
-        mtc_frame.grid_rowconfigure(3, weight=1)
-        mtc_frame.grid_columnconfigure(0, weight=1)
-        mtc_frame.grid_columnconfigure(1, weight=1)
-        mtc_frame.grid_columnconfigure(2, weight=1)
-        mtc_frame.grid_columnconfigure(3, weight=1)
-        mtc_frame.grid_columnconfigure(4, weight=1)
 
         # D+50 values
         self.entries['d_plus50_sup'] = self.create_labeled_entry(
@@ -337,11 +356,12 @@ class InitialPage(BasePage):
         frame.pack(fill='both', expand=True, padx=10, pady=5)
 
         # Results text area
-        results_label = tk.Label(frame, text="Survey Results:", background='gray12', foreground='gold')
+        results_label = tk.Label(
+            frame, text="Survey Results:", background='gray12', foreground='gold')
         results_label.pack(anchor='w', pady=5)
 
         self.results_text = tk.Text(frame, height=20, width=80, bg='black', fg='green',
-                                   insertbackground='white', selectbackground='blue')
+                                    insertbackground='white', selectbackground='blue')
         self.results_text.pack(fill='both', expand=True)
 
         # Scrollbar
@@ -367,24 +387,24 @@ class InitialPage(BasePage):
         left_buttons.grid(row=0, column=0, sticky='w')
 
         ttk.Button(left_buttons, text="Calculate Drafts",
-                  command=self.calculate_corrected_drafts).pack(side='left', padx=5)
+                   command=self.calculate_corrected_drafts).pack(side='left', padx=5)
         ttk.Button(left_buttons, text="Calculate MFA/MOM/QM",
-                  command=self.calculate_mfa_mom_qm).pack(side='left', padx=5)
+                   command=self.calculate_mfa_mom_qm).pack(side='left', padx=5)
         ttk.Button(left_buttons, text="Interpolate Values",
-                  command=self.calculate_interpolation).pack(side='left', padx=5)
+                   command=self.calculate_interpolation).pack(side='left', padx=5)
 
         # Right side buttons
         right_buttons = ttk.Frame(button_frame)
         right_buttons.grid(row=0, column=1, sticky='e')
 
         ttk.Button(right_buttons, text="Generate Report",
-                  command=self.generate_report).pack(side='right', padx=5)
+                   command=self.generate_report).pack(side='right', padx=5)
         ttk.Button(right_buttons, text="Save Data",
-                  command=self.save_data).pack(side='right', padx=5)
+                   command=self.save_data).pack(side='right', padx=5)
         ttk.Button(right_buttons, text="Load Data",
-                  command=self.load_data).pack(side='right', padx=5)
+                   command=self.load_data).pack(side='right', padx=5)
         ttk.Button(right_buttons, text="Clear All",
-                  command=self.clear_all).pack(side='right', padx=5)
+                   command=self.clear_all).pack(side='right', padx=5)
 
     def calculate_corrected_drafts(self):
         """Calculate corrected drafts from observed values"""
@@ -400,7 +420,8 @@ class InitialPage(BasePage):
                 'position_from_mid_pp': self.position_from_mid_pp_entry.get()
             }
 
-            is_valid, error_msg = self.controller.validate_vessel_data(vessel_data)
+            is_valid, error_msg = self.controller.validate_vessel_data(
+                vessel_data)
             if not is_valid:
                 messagebox.showerror("Validation Error", error_msg)
                 return
@@ -415,7 +436,8 @@ class InitialPage(BasePage):
                 'draft_aft_star': self.draft_aft_star_entry.get()
             }
 
-            is_valid, error_msg = self.controller.validate_observed_drafts(observed_drafts)
+            is_valid, error_msg = self.controller.validate_observed_drafts(
+                observed_drafts)
             if not is_valid:
                 messagebox.showerror("Validation Error", error_msg)
                 return
@@ -440,12 +462,16 @@ class InitialPage(BasePage):
             lbp = float(vessel_data['lbp'])
             corrected_drafts = self.controller.calculate_corrected_drafts(
                 lbp=lbp,
-                distance_from_for_pp=float(vessel_data['distance_from_for_pp']),
-                distance_from_aft_pp=float(vessel_data['distance_from_aft_pp']),
-                distance_from_mid_pp=float(vessel_data.get('distance_from_mid_pp', 0)),
+                distance_from_for_pp=float(
+                    vessel_data['distance_from_for_pp']),
+                distance_from_aft_pp=float(
+                    vessel_data['distance_from_aft_pp']),
+                distance_from_mid_pp=float(
+                    vessel_data.get('distance_from_mid_pp', 0)),
                 position_from_for_pp=vessel_data['position_from_for_pp'],
                 position_from_aft_pp=vessel_data['position_from_aft_pp'],
-                position_from_mid_pp=vessel_data.get('position_from_mid_pp', 'N/A'),
+                position_from_mid_pp=vessel_data.get(
+                    'position_from_mid_pp', 'N/A'),
                 trim_observed=float(self.trim_observed_entry.get())
             )
 
@@ -458,10 +484,12 @@ class InitialPage(BasePage):
     def calculate_mfa_mom_qm(self):
         """Calculate MFA, MOM, and QM values"""
         try:
-            corrected_drafts = self.controller.survey_data.get_draft_data().get('corrected_drafts', {})
+            corrected_drafts = self.controller.survey_data.get_draft_data().get(
+                'corrected_drafts', {})
 
             if not corrected_drafts:
-                messagebox.showwarning("Warning", "Please calculate corrected drafts first")
+                messagebox.showwarning(
+                    "Warning", "Please calculate corrected drafts first")
                 return
 
             mfa_mom_qm = self.controller.calculate_mfa_mom_qm(
@@ -480,10 +508,11 @@ class InitialPage(BasePage):
         try:
             # Get interpolation data
             interp_data = {key: entry.get() for key, entry in self.entries.items()
-                          if key in ['draft_sup', 'draft_inf', 'displacement_sup', 'displacement_inf',
-                                   'tpc_sup', 'tpc_inf', 'lcf_sup', 'lcf_inf']}
+                           if key in ['draft_sup', 'draft_inf', 'displacement_sup', 'displacement_inf',
+                                      'tpc_sup', 'tpc_inf', 'lcf_sup', 'lcf_inf']}
 
-            is_valid, error_msg = self.controller.validate_interpolation_data(interp_data)
+            is_valid, error_msg = self.controller.validate_interpolation_data(
+                interp_data)
             if not is_valid:
                 messagebox.showerror("Validation Error", error_msg)
                 return
@@ -493,7 +522,8 @@ class InitialPage(BasePage):
             qm = draft_data.get('mfa_mom_qm', {}).get('qm', 0)
 
             if qm == 0:
-                messagebox.showwarning("Warning", "Please calculate MFA/MOM/QM first")
+                messagebox.showwarning(
+                    "Warning", "Please calculate MFA/MOM/QM first")
                 return
 
             # Calculate interpolation
@@ -518,14 +548,22 @@ class InitialPage(BasePage):
         """Display corrected draft results"""
         self.results_text.delete(1.0, tk.END)
         self.results_text.insert(tk.END, "=== CORRECTED DRAFTS ===\n\n")
-        self.results_text.insert(tk.END, f"Forward Draft: {corrected_drafts['draft_for']:.2f} m\n")
-        self.results_text.insert(tk.END, f"Aft Draft: {corrected_drafts['draft_aft']:.2f} m\n")
-        self.results_text.insert(tk.END, f"Mid Draft: {corrected_drafts['draft_mid']:.2f} m\n")
-        self.results_text.insert(tk.END, f"Corrected Forward Draft: {corrected_drafts['draft_for_corrected']:.2f} m\n")
-        self.results_text.insert(tk.END, f"Corrected Aft Draft: {corrected_drafts['draft_aft_corrected']:.2f} m\n")
-        self.results_text.insert(tk.END, f"Corrected Mid Draft: {corrected_drafts['draft_mid_corrected']:.2f} m\n")
-        self.results_text.insert(tk.END, f"Observed Trim: {corrected_drafts['trim_observed']:.2f} m\n")
-        self.results_text.insert(tk.END, f"LBM: {corrected_drafts['lbm']:.2f} m\n")
+        self.results_text.insert(
+            tk.END, f"Forward Draft: {corrected_drafts['draft_for']:.2f} m\n")
+        self.results_text.insert(
+            tk.END, f"Aft Draft: {corrected_drafts['draft_aft']:.2f} m\n")
+        self.results_text.insert(
+            tk.END, f"Mid Draft: {corrected_drafts['draft_mid']:.2f} m\n")
+        self.results_text.insert(
+            tk.END, f"Corrected Forward Draft: {corrected_drafts['draft_for_corrected']:.2f} m\n")
+        self.results_text.insert(
+            tk.END, f"Corrected Aft Draft: {corrected_drafts['draft_aft_corrected']:.2f} m\n")
+        self.results_text.insert(
+            tk.END, f"Corrected Mid Draft: {corrected_drafts['draft_mid_corrected']:.2f} m\n")
+        self.results_text.insert(
+            tk.END, f"Observed Trim: {corrected_drafts['trim_observed']:.2f} m\n")
+        self.results_text.insert(
+            tk.END, f"LBM: {corrected_drafts['lbm']:.2f} m\n")
 
     def display_mfa_mom_qm(self, mfa_mom_qm: dict):
         """Display MFA/MOM/QM results"""
@@ -537,9 +575,11 @@ class InitialPage(BasePage):
     def display_interpolation_results(self, interp_results: dict):
         """Display interpolation results"""
         self.results_text.insert(tk.END, "\n=== INTERPOLATION RESULTS ===\n")
-        self.results_text.insert(tk.END, f"Displacement: {interp_results['displacement']:.3f} mt\n")
+        self.results_text.insert(
+            tk.END, f"Displacement: {interp_results['displacement']:.3f} mt\n")
         self.results_text.insert(tk.END, f"TPC: {interp_results['tpc']:.3f}\n")
-        self.results_text.insert(tk.END, f"LCF: {interp_results['lcf']:.3f} m\n")
+        self.results_text.insert(
+            tk.END, f"LCF: {interp_results['lcf']:.3f} m\n")
 
     def generate_report(self):
         """Generate complete survey report"""
@@ -598,16 +638,20 @@ class InitialPage(BasePage):
 
             if observed_drafts:
                 self.draft_for_port_entry.delete(0, tk.END)
-                self.draft_for_port_entry.insert(0, str(observed_drafts.get('draft_for_port', '')))
+                self.draft_for_port_entry.insert(
+                    0, str(observed_drafts.get('draft_for_port', '')))
 
                 self.draft_for_star_entry.delete(0, tk.END)
-                self.draft_for_star_entry.insert(0, str(observed_drafts.get('draft_for_star', '')))
+                self.draft_for_star_entry.insert(
+                    0, str(observed_drafts.get('draft_for_star', '')))
 
                 self.draft_aft_port_entry.delete(0, tk.END)
-                self.draft_aft_port_entry.insert(0, str(observed_drafts.get('draft_aft_port', '')))
+                self.draft_aft_port_entry.insert(
+                    0, str(observed_drafts.get('draft_aft_port', '')))
 
                 self.draft_aft_star_entry.delete(0, tk.END)
-                self.draft_aft_star_entry.insert(0, str(observed_drafts.get('draft_aft_star', '')))
+                self.draft_aft_star_entry.insert(
+                    0, str(observed_drafts.get('draft_aft_star', '')))
 
         except Exception as e:
             messagebox.showerror("Error", f"Error populating fields: {str(e)}")
@@ -617,13 +661,14 @@ class InitialPage(BasePage):
         try:
             # Clear all entry fields
             for entry in [self.vessel_name_entry, self.draft_number_entry, self.lbp_entry,
-                         self.draft_for_port_entry, self.draft_for_star_entry,
-                         self.draft_mid_port_entry, self.draft_mid_star_entry,
-                         self.draft_aft_port_entry, self.draft_aft_star_entry,
-                         self.distance_from_for_pp_entry, self.distance_from_aft_pp_entry,
-                         self.distance_from_mid_pp_entry, self.position_from_for_pp_entry,
-                         self.position_from_aft_pp_entry, self.position_from_mid_pp_entry,
-                         self.trim_observed_entry, self.dock_density_entry]:
+                          self.draft_for_port_entry, self.draft_for_star_entry,
+                          self.draft_mid_port_entry, self.draft_mid_star_entry,
+                          self.draft_aft_port_entry, self.draft_aft_star_entry,
+                          self.distance_from_for_pp_entry, self.distance_from_aft_pp_entry,
+                          self.distance_from_mid_pp_entry, self.position_from_for_pp_entry, # noqa
+                          self.ballast_entry, self.fuel_entry, self.gas_oil_entry, self.lub_oil_entry, self.slops_entry, self.others_entry,
+                          self.position_from_aft_pp_entry, self.position_from_mid_pp_entry,
+                          self.trim_observed_entry, self.dock_density_entry]:
                 if entry:
                     entry.delete(0, tk.END)
 
@@ -636,6 +681,8 @@ class InitialPage(BasePage):
 
             # Clear controller data
             self.controller.clear_all_data()
+
+            self.operation_type.set('load')
 
             messagebox.showinfo("Success", "All data cleared!")
 

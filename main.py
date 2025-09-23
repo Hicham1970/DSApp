@@ -45,28 +45,29 @@ class DraftSurveyApp:
         style = ttk.Style()
 
         # Configure notebook style
-        style.configure("TNotebook", background='gray20')
+        style.configure("TNotebook", background='black')
         style.configure("TNotebook.Tab",
-                       background='gray30',
-                       foreground='white',
-                       font=('Arial', 10, 'bold'),
-                       padding=[10, 5])
+                        background='black',
+                        foreground='black',
+                        font=('Arial', 10, 'bold'),
+                        padding=[10, 5])
 
         style.map("TNotebook.Tab",
-                  background=[("selected", "gray10"), ("active", "gray25")],
+                  background=[("selected", "gray20"), ("active", "gray10")],
                   foreground=[("selected", "gold"), ("active", "light blue")])
 
         # Configure frame styles
         style.configure("TFrame", background='gray15')
         style.configure("TLabelframe", background='gray15', foreground='gold')
-        style.configure("TLabelframe.Label", background='gray15', foreground='gold', font=('Arial', 10, 'bold'))
+        style.configure("TLabelframe.Label", background='gray15',
+                        foreground='gold', font=('Arial', 10, 'bold'))
 
         # Configure button styles
         style.configure("TButton",
-                       background='gray25',
-                       foreground='white',
-                       font=('Arial', 9, 'bold'),
-                       padding=5)
+                        background='gray25',
+                        foreground='black',
+                        font=('Arial', 9, 'bold'),
+                        padding=5)
 
         style.map("TButton",
                   background=[("active", "gray35"), ("pressed", "gray20")],
@@ -74,24 +75,24 @@ class DraftSurveyApp:
 
         # Configure entry styles
         style.configure("TEntry",
-                       fieldbackground='gray10',
-                       foreground='white',
-                       insertcolor='white',
-                       font=('Arial', 9))
+                        fieldbackground='gray10',
+                        foreground='black',
+                        insertcolor='white',
+                        font=('Arial', 9))
 
         # Configure label styles
         style.configure("TLabel",
-                       background='gray15',
-                       foreground='white',
-                       font=('Arial', 9))
+                        background='gray15',
+                        foreground='white',
+                        font=('Arial', 9))
 
         # Configure text widget styles
         style.configure("TText",
-                       background='gray10',
-                       foreground='light green',
-                       insertbackground='white',
-                       selectbackground='gray30',
-                       font=('Consolas', 9))
+                        background='gray10',
+                        foreground='black',
+                        insertbackground='white',
+                        selectbackground='gray30',
+                        font=('Consolas', 9))
 
     def setup_data_sharing(self):
         """Setup data sharing between pages"""
@@ -111,17 +112,21 @@ class DraftSurveyApp:
         file_menu.add_command(label="Open Survey", command=self.open_survey)
         file_menu.add_command(label="Save Survey", command=self.save_survey)
         file_menu.add_separator()
-        file_menu.add_command(label="Export Report", command=self.export_report)
+        file_menu.add_command(label="Export Report",
+                              command=self.export_report)
         file_menu.add_separator()
         file_menu.add_command(label="Exit", command=self.root.quit)
 
         # Tools menu
         tools_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="Tools", menu=tools_menu)
-        tools_menu.add_command(label="Calculate All", command=self.calculate_all)
-        tools_menu.add_command(label="Validate Data", command=self.validate_all_data)
+        tools_menu.add_command(label="Calculate All",
+                               command=self.calculate_all)
+        tools_menu.add_command(label="Validate Data",
+                               command=self.validate_all_data)
         tools_menu.add_separator()
-        tools_menu.add_command(label="Clear All Data", command=self.clear_all_data)
+        tools_menu.add_command(label="Clear All Data",
+                               command=self.clear_all_data)
 
         # Help menu
         help_menu = tk.Menu(menubar, tearoff=0)
@@ -148,7 +153,8 @@ class DraftSurveyApp:
             if filename:
                 self.controller.load_survey_data(filename)
                 self.load_data_into_pages()
-                tk.messagebox.showinfo("Success", "Survey data loaded successfully!")
+                tk.messagebox.showinfo(
+                    "Success", "Survey data loaded successfully!")
         except Exception as e:
             tk.messagebox.showerror("Error", f"Error loading survey: {str(e)}")
 
@@ -162,7 +168,8 @@ class DraftSurveyApp:
             )
             if filename:
                 self.controller.save_survey_data(filename)
-                tk.messagebox.showinfo("Success", "Survey data saved successfully!")
+                tk.messagebox.showinfo(
+                    "Success", "Survey data saved successfully!")
         except Exception as e:
             tk.messagebox.showerror("Error", f"Error saving survey: {str(e)}")
 
@@ -178,9 +185,11 @@ class DraftSurveyApp:
                 report = self.controller.generate_survey_report()
                 with open(filename, 'w') as f:
                     f.write(report)
-                tk.messagebox.showinfo("Success", "Report exported successfully!")
+                tk.messagebox.showinfo(
+                    "Success", "Report exported successfully!")
         except Exception as e:
-            tk.messagebox.showerror("Error", f"Error exporting report: {str(e)}")
+            tk.messagebox.showerror(
+                "Error", f"Error exporting report: {str(e)}")
 
     def calculate_all(self):
         """Perform all calculations"""
@@ -195,7 +204,8 @@ class DraftSurveyApp:
 
             tk.messagebox.showinfo("Success", "Calculations completed!")
         except Exception as e:
-            tk.messagebox.showerror("Error", f"Error during calculations: {str(e)}")
+            tk.messagebox.showerror(
+                "Error", f"Error during calculations: {str(e)}")
 
     def validate_all_data(self):
         """Validate all survey data"""
@@ -212,7 +222,8 @@ class DraftSurveyApp:
 
             tk.messagebox.showinfo("Validation", "Data validation completed!")
         except Exception as e:
-            tk.messagebox.showerror("Validation Error", f"Data validation failed: {str(e)}")
+            tk.messagebox.showerror(
+                "Validation Error", f"Data validation failed: {str(e)}")
 
     def clear_all_data(self):
         """Clear all survey data"""
@@ -239,11 +250,13 @@ class DraftSurveyApp:
             self.recap_page.update_data(self.controller.survey_data)
 
         except Exception as e:
-            tk.messagebox.showerror("Error", f"Error loading data into pages: {str(e)}")
+            tk.messagebox.showerror(
+                "Error", f"Error loading data into pages: {str(e)}")
 
     def show_about(self):
         """Show about dialog"""
-        tk.messagebox.showinfo("About", "Draft Survey Application\nVersion 2.0\n\nA comprehensive tool for maritime draft surveys.")
+        tk.messagebox.showinfo(
+            "About", "Draft Survey Application\nVersion 2.0\n\nA comprehensive tool for maritime draft surveys.")
 
     def show_guide(self):
         """Show user guide"""
