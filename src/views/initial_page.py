@@ -392,6 +392,10 @@ class InitialPage(BasePage):
                    command=self.calculate_mfa_mom_qm).pack(side='left', padx=5)
         ttk.Button(left_buttons, text="Interpolate Values",
                    command=self.calculate_interpolation).pack(side='left', padx=5)
+        ttk.Button(left_buttons, text="Calculate MTC",
+                   command=self.calculate_mtc).pack(side='left', padx=5)
+        ttk.Button(left_buttons, text="Calculate Trim Corrections",
+                   command=self.calculate_trim_corrections).pack(side='left', padx=5)
 
         # Right side buttons
         right_buttons = ttk.Frame(button_frame)
@@ -544,6 +548,79 @@ class InitialPage(BasePage):
         except Exception as e:
             messagebox.showerror("Calculation Error", str(e))
 
+    def calculate_mtc(self):
+        """Calculate MTC values"""
+        try:
+            # Get MTC data
+            mtc_data = {key: entry.get() for key, entry in self.entries.items()
+                        if key in ['d_plus50_sup', 'd_plus50_inf', 'd_plus50',
+                                   'mtc_plus50_sup', 'mtc_plus50_inf',
+                                   'd_moins50_sup', 'd_moins50_inf', 'd_moins50',
+                                   'mtc_moins50_sup', 'mtc_moins50_inf']}
+
+            is_valid, error_msg = self.controller.validate_mtc_data(mtc_data)
+            if not is_valid:
+                messagebox.showerror("Validation Error", error_msg)
+                return
+
+            # Calculate MTC values
+            mtc_results = self.controller.calculate_mtc_values(
+                d_plus50_sup=float(mtc_data['d_plus50_sup']),
+                d_plus50_inf=float(mtc_data['d_plus50_inf']),
+                d_plus50=float(mtc_data['d_plus50']),
+                mtc_plus50_sup=float(mtc_data['mtc_plus50_sup']),
+                mtc_plus50_inf=float(mtc_data['mtc_plus50_inf']),
+                d_moins50_sup=float(mtc_data['d_moins50_sup']),
+                d_moins50_inf=float(mtc_data['d_moins50_inf']),
+                d_moins50=float(mtc_data['d_moins50']),
+                mtc_moins50_sup=float(mtc_data['mtc_moins50_sup']),
+                mtc_moins50_inf=float(mtc_data['mtc_moins50_inf'])
+            )
+
+            self.display_mtc_results(mtc_results)
+
+        except Exception as e:
+            messagebox.showerror("Calculation Error", str(e))
+
+    def calculate_trim_corrections(self):
+        """Calculate first and second trim corrections."""
+        try:
+            draft_data = self.controller.survey_data.get_draft_data()
+            corrected_drafts = draft_data.get('corrected_drafts', {})
+            interp_results = draft_data.get('interpolation_results', {})
+            mtc_results = draft_data.get('mtc_results', {})
+
+            if not all([corrected_drafts, interp_results, mtc_results]):
+                messagebox.showwarning(
+                    "Warning", "Please perform Draft, Interpolation, and MTC calculations first.")
+                return
+
+            lbp_str = self.lbp_entry.get()
+            if not lbp_str:
+                messagebox.showwarning("Warning", "Please enter LBP value.")
+                return
+
+            trim_corrections = self.controller.calculate_trim_corrections(
+                draft_for_corrected=corrected_drafts['draft_for_corrected'],
+                draft_aft_corrected=corrected_drafts['draft_aft_corrected'],
+                tpc=interp_results['tpc'],
+                lcf=interp_results['lcf'],
+                lbp=float(lbp_str),
+                delta_mtc=mtc_results['delta_mtc'],
+                displacement=interp_results['displacement']
+            )
+
+            self.display_trim_corrections(trim_corrections)
+
+        except KeyError as e:
+            messagebox.showerror(
+                "Missing Data", f"Could not find required data: {e}. Please perform all previous calculations.")
+        except ValueError:
+            messagebox.showerror(
+                "Invalid Input", "Please ensure LBP is a valid number.")
+        except Exception as e:
+            messagebox.showerror("Calculation Error", str(e))
+
     def display_corrected_drafts(self, corrected_drafts: dict):
         """Display corrected draft results"""
         self.results_text.delete(1.0, tk.END)
@@ -563,10 +640,14 @@ class InitialPage(BasePage):
         self.results_text.insert(
             tk.END, f"Observed Trim: {corrected_drafts['trim_observed']:.2f} m\n")
         self.results_text.insert(
+            tk.END, f"Corrected Trim: {corrected_drafts.get('trim_corrected', 0.0):.2f} m\n")
+        self.results_text.insert(
             tk.END, f"LBM: {corrected_drafts['lbm']:.2f} m\n")
 
     def display_mfa_mom_qm(self, mfa_mom_qm: dict):
         """Display MFA/MOM/QM results"""
+        if self.results_text.get(1.0, tk.END).strip() == "":
+            self.results_text.delete(1.0, tk.END)
         self.results_text.insert(tk.END, "\n=== MFA/MOM/QM ===\n")
         self.results_text.insert(tk.END, f"MFA: {mfa_mom_qm['mfa']:.2f} m\n")
         self.results_text.insert(tk.END, f"MOM: {mfa_mom_qm['mom']:.2f} m\n")
@@ -574,12 +655,36 @@ class InitialPage(BasePage):
 
     def display_interpolation_results(self, interp_results: dict):
         """Display interpolation results"""
+        if self.results_text.get(1.0, tk.END).strip() == "":
+            self.results_text.delete(1.0, tk.END)
         self.results_text.insert(tk.END, "\n=== INTERPOLATION RESULTS ===\n")
         self.results_text.insert(
             tk.END, f"Displacement: {interp_results['displacement']:.3f} mt\n")
         self.results_text.insert(tk.END, f"TPC: {interp_results['tpc']:.3f}\n")
         self.results_text.insert(
             tk.END, f"LCF: {interp_results['lcf']:.3f} m\n")
+
+    def display_mtc_results(self, mtc_results: dict):
+        """Display MTC calculation results"""
+        self.results_text.insert(tk.END, "\n=== MTC RESULTS ===\n")
+        self.results_text.insert(
+            tk.END, f"MTC1 (MTC+): {mtc_results['mtc1']:.2f}\n")
+        self.results_text.insert(
+            tk.END, f"MTC2 (MTC-): {mtc_results['mtc2']:.2f}\n")
+        self.results_text.insert(
+            tk.END, f"Delta MTC: {mtc_results['delta_mtc']:.2f}\n")
+
+    def display_trim_corrections(self, trim_corrections: dict):
+        """Display trim correction results"""
+        self.results_text.insert(tk.END, "\n=== TRIM CORRECTIONS ===\n")
+        self.results_text.insert(
+            tk.END, f"1st Trim Correction: {trim_corrections['first_trim_correction']:.2f} mt\n")
+        self.results_text.insert(
+            tk.END, f"2nd Trim Correction: {trim_corrections['second_trim_correction']:.2f} mt\n")
+        self.results_text.insert(
+            tk.END, f"Total Trim Correction: {trim_corrections['first_trim_correction'] + trim_corrections['second_trim_correction']:.2f} mt\n")
+        self.results_text.insert(
+            tk.END, f"Displacement Corrected for Trim: {trim_corrections['corrected_displacement_for_trim']:.2f} mt\n")
 
     def generate_report(self):
         """Generate complete survey report"""
@@ -665,7 +770,7 @@ class InitialPage(BasePage):
                           self.draft_mid_port_entry, self.draft_mid_star_entry,
                           self.draft_aft_port_entry, self.draft_aft_star_entry,
                           self.distance_from_for_pp_entry, self.distance_from_aft_pp_entry,
-                          self.distance_from_mid_pp_entry, self.position_from_for_pp_entry, # noqa
+                          self.distance_from_mid_pp_entry, self.position_from_for_pp_entry,  # noqa
                           self.ballast_entry, self.fuel_entry, self.gas_oil_entry, self.lub_oil_entry, self.slops_entry, self.others_entry,
                           self.position_from_aft_pp_entry, self.position_from_mid_pp_entry,
                           self.trim_observed_entry, self.dock_density_entry]:

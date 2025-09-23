@@ -98,7 +98,7 @@ class DraftCalculations:
 
         # Calculate LBM
         lbm = self.calculate_lbm(lbp, distance_from_for_pp, distance_from_aft_pp,
-                                position_from_for_pp, position_from_aft_pp)
+                                 position_from_for_pp, position_from_aft_pp)
 
         # Calculate corrected drafts
         draft_for_corrected = self._calculate_single_draft_correction(
@@ -110,6 +110,8 @@ class DraftCalculations:
         draft_mid_corrected = self._calculate_single_draft_correction(
             draft_mid, trim_observed, distance_from_mid_pp, lbm, position_from_mid_pp)
 
+        trim_corrected = round(draft_aft_corrected - draft_for_corrected, 2)
+
         return {
             'draft_for': draft_for,
             'draft_aft': draft_aft,
@@ -118,11 +120,12 @@ class DraftCalculations:
             'draft_aft_corrected': draft_aft_corrected,
             'draft_mid_corrected': draft_mid_corrected,
             'trim_observed': trim_observed,
-            'lbm': lbm
+            'lbm': lbm,
+            'trim_corrected': trim_corrected
         }
 
     def _calculate_single_draft_correction(self, draft: float, trim: float, distance: float,
-                                          lbm: float, position: str) -> float:
+                                           lbm: float, position: str) -> float:
         """
         Calculate correction for a single draft reading
         """
@@ -149,7 +152,7 @@ class DraftCalculations:
 
     @staticmethod
     def calculate_mfa_mom_qm(draft_for_corrected: float, draft_aft_corrected: float,
-                            draft_mid_corrected: float) -> dict:
+                             draft_mid_corrected: float) -> dict:
         """
         Calculate Mean Fore-Aft (MFA), Mean of Means (MOM), and Quarter Mean (QM)
         """
@@ -190,6 +193,7 @@ class DraftCalculations:
         # Calculate interpolated LCF
         if draft_sup != draft_inf:
             ratio = (qm - draft_inf) / (draft_sup - draft_inf)
+            # This formula is correct for both positive and negative values
             results['lcf'] = round(lcf_inf + (ratio * (lcf_sup - lcf_inf)), 3)
         else:
             results['lcf'] = lcf_inf
@@ -197,9 +201,9 @@ class DraftCalculations:
         return results
 
     def calculate_mtc_values(self, d_plus50_sup: float, d_plus50_inf: float, d_plus50: float,
-                            mtc_plus50_sup: float, mtc_plus50_inf: float,
-                            d_moins50_sup: float, d_moins50_inf: float, d_moins50: float,
-                            mtc_moins50_sup: float, mtc_moins50_inf: float) -> dict:
+                             mtc_plus50_sup: float, mtc_plus50_inf: float,
+                             d_moins50_sup: float, d_moins50_inf: float, d_moins50: float,
+                             mtc_moins50_sup: float, mtc_moins50_inf: float) -> dict:
         """
         Calculate MTC+ and MTC- values using interpolation
         """
@@ -217,7 +221,8 @@ class DraftCalculations:
 
         # Calculate MTC- (MTC2)
         if d_moins50_sup != d_moins50_inf:
-            ratio = (d_moins50_sup - d_moins50) / (d_moins50_sup - d_moins50_inf)
+            ratio = (d_moins50_sup - d_moins50) / \
+                (d_moins50_sup - d_moins50_inf)
             mtc2 = round(
                 (((mtc_moins50_sup - mtc_moins50_inf) / (d_moins50_sup - d_moins50_inf)) *
                  (d_moins50_sup - d_moins50)) + mtc_moins50_inf, 2)
@@ -227,7 +232,7 @@ class DraftCalculations:
 
         # Calculate Delta MTC
         if isinstance(mtc1, (int, float)) and isinstance(mtc2, (int, float)):
-            results['delta_mtc'] = round(mtc1 - mtc2, 2)
+            results['delta_mtc'] = round(abs(mtc1 - mtc2), 2)
         else:
             results['delta_mtc'] = 0.0
 
@@ -281,14 +286,17 @@ class DraftCalculations:
         """
         if operation_type == 'load':
             # For Loading operation
-            load_displacement = round(corrected_displacement - total_deductibles, 3)
+            load_displacement = round(
+                corrected_displacement - total_deductibles, 3)
             cargo = round(load_displacement - net_init_displacement, 3)
         elif operation_type == 'discharge':
             # For Discharging operation
-            net_displacement = round(corrected_displacement - total_deductibles, 3)
+            net_displacement = round(
+                corrected_displacement - total_deductibles, 3)
             cargo = round(net_init_displacement - net_displacement, 3)
         else:
-            raise ValueError("Invalid operation type. Must be 'load' or 'discharge'")
+            raise ValueError(
+                "Invalid operation type. Must be 'load' or 'discharge'")
 
         return {
             'load_displacement': load_displacement if operation_type == 'load' else net_displacement,
@@ -324,9 +332,12 @@ class DraftCalculations:
         report_lines.append('Observed Draft')
         if 'observed_drafts' in draft_data:
             obs = draft_data['observed_drafts']
-            report_lines.append(f'Dfp: {obs.get("draft_for_port", 0)} m\t Dfs: {obs.get("draft_for_star", 0)}m')
-            report_lines.append(f'Dmp: {obs.get("draft_mid_port", 0)} m\t Dms: {obs.get("draft_mid_star", 0)}m')
-            report_lines.append(f'Dap: {obs.get("draft_aft_port", 0)} m\t Das: {obs.get("draft_aft_star", 0)}m')
+            report_lines.append(
+                f'Dfp: {obs.get("draft_for_port", 0)} m\t Dfs: {obs.get("draft_for_star", 0)}m')
+            report_lines.append(
+                f'Dmp: {obs.get("draft_mid_port", 0)} m\t Dms: {obs.get("draft_mid_star", 0)}m')
+            report_lines.append(
+                f'Dap: {obs.get("draft_aft_port", 0)} m\t Das: {obs.get("draft_aft_star", 0)}m')
         report_lines.append('')
 
         # Corrected drafts
@@ -334,8 +345,10 @@ class DraftCalculations:
         report_lines.append('Corrected Draft:')
         if 'corrected_drafts' in draft_data:
             corr = draft_data['corrected_drafts']
-            report_lines.append(f'Trim Ob: {corr.get("trim_observed", 0)}m\t Lbm:{corr.get("lbm", 0)}m')
-            report_lines.append(f'Dfc: {corr.get("draft_for_corrected", 0)} m\t Dac: {corr.get("draft_aft_corrected", 0)}m')
+            report_lines.append(
+                f'Trim Ob: {corr.get("trim_observed", 0)}m\t Lbm:{corr.get("lbm", 0)}m')
+            report_lines.append(
+                f'Dfc: {corr.get("draft_for_corrected", 0)} m\t Dac: {corr.get("draft_aft_corrected", 0)}m')
             report_lines.append(f'Dmc: {corr.get("draft_mid_corrected", 0)} m')
         report_lines.append('')
 
@@ -352,11 +365,16 @@ class DraftCalculations:
         report_lines.append('Displacement Corrections:')
         if 'displacement_corrections' in calculation_data:
             disp = calculation_data['displacement_corrections']
-            report_lines.append(f'Displacement: {disp.get("displacement", 0)} mt')
-            report_lines.append(f'Dis Corrected for trim: {disp.get("corrected_displacement_for_trim", 0)} mt')
-            report_lines.append(f'Dis Corrected for density: {disp.get("corrected_displacement_for_density", 0)} mt')
-            report_lines.append(f'Total deductibles: {disp.get("total_deductibles", 0)} mt')
-            report_lines.append(f'Net Displacement: {disp.get("load_displacement", 0)} mt')
+            report_lines.append(
+                f'Displacement: {disp.get("displacement", 0)} mt')
+            report_lines.append(
+                f'Dis Corrected for trim: {disp.get("corrected_displacement_for_trim", 0)} mt')
+            report_lines.append(
+                f'Dis Corrected for density: {disp.get("corrected_displacement_for_density", 0)} mt')
+            report_lines.append(
+                f'Total deductibles: {disp.get("total_deductibles", 0)} mt')
+            report_lines.append(
+                f'Net Displacement: {disp.get("load_displacement", 0)} mt')
             report_lines.append(f'Cargo + const: {disp.get("cargo", 0)} mt')
 
         return '\n'.join(report_lines)
