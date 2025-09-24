@@ -304,77 +304,75 @@ class DraftCalculations:
         }
 
     @staticmethod
-    def format_survey_report(vessel_data: dict, draft_data: dict, calculation_data: dict) -> str:
-        """
-        Format the complete survey report as text
-        """
-        report_lines = []
+    def format_two_column_report(self, vessel_data: dict, initial_data: dict, final_data: dict) -> str:
+        """Formats a two-column report for initial and final surveys."""
+
+        def get_val(data, category, key, default=0.0, precision=2):
+            val = data.get(category, {}).get(key, default)
+            if isinstance(val, (int, float)):
+                return f"{val:.{precision}f}"
+            return str(val)
+
+        lines = []
+        col_width = 38
 
         # Header
-        report_lines.append('***Final Draft Survey ***')
-        report_lines.append('')
+        lines.append('*** DRAFT SURVEY REPORT ***'.center(col_width * 2))
+        lines.append(
+            f"Vessel: {vessel_data.get('vessel_name', 'N/A')}".center(col_width * 2))
+        lines.append(
+            f"Draft Number: {vessel_data.get('draft_number', 'N/A')}".center(col_width * 2))
+        lines.append('=' * (col_width * 2))
 
-        # Vessel information
-        if 'vessel_name' in vessel_data:
-            report_lines.append(f"Vessel: {vessel_data['vessel_name']}")
-        if 'draft_number' in vessel_data:
-            report_lines.append(f"Draft Number: {vessel_data['draft_number']}")
-        report_lines.append('')
+        header = f"{'':<20}{'INITIAL':<{col_width-20}}{'FINAL':<{col_width}}"
+        lines.append(header)
+        lines.append('-' * (col_width * 2))
 
-        # Time sheet data
-        if 'time_sheet' in vessel_data:
-            for key, value in vessel_data['time_sheet'].items():
-                report_lines.append(f"{key}: {value}")
-        report_lines.append('')
+        # Data rows
+        i_draft = initial_data.get('draft_data', {})
+        f_draft = final_data.get('draft_data', {})
 
-        # Observed drafts
-        report_lines.append('===========================')
-        report_lines.append('Observed Draft')
-        if 'observed_drafts' in draft_data:
-            obs = draft_data['observed_drafts']
-            report_lines.append(
-                f'Dfp: {obs.get("draft_for_port", 0)} m\t Dfs: {obs.get("draft_for_star", 0)}m')
-            report_lines.append(
-                f'Dmp: {obs.get("draft_mid_port", 0)} m\t Dms: {obs.get("draft_mid_star", 0)}m')
-            report_lines.append(
-                f'Dap: {obs.get("draft_aft_port", 0)} m\t Das: {obs.get("draft_aft_star", 0)}m')
-        report_lines.append('')
+        i_corr = i_draft.get('corrected_drafts', {})
+        f_corr = f_draft.get('corrected_drafts', {})
 
-        # Corrected drafts
-        report_lines.append('===========================')
-        report_lines.append('Corrected Draft:')
-        if 'corrected_drafts' in draft_data:
-            corr = draft_data['corrected_drafts']
-            report_lines.append(
-                f'Trim Ob: {corr.get("trim_observed", 0)}m\t Lbm:{corr.get("lbm", 0)}m')
-            report_lines.append(
-                f'Dfc: {corr.get("draft_for_corrected", 0)} m\t Dac: {corr.get("draft_aft_corrected", 0)}m')
-            report_lines.append(f'Dmc: {corr.get("draft_mid_corrected", 0)} m')
-        report_lines.append('')
+        i_mfa = i_draft.get('mfa_mom_qm', {})
+        f_mfa = f_draft.get('mfa_mom_qm', {})
 
-        # MFA/MOM/QM
-        if 'mfa_mom_qm' in draft_data:
-            mfa_data = draft_data['mfa_mom_qm']
-            report_lines.append(f'MFA: {mfa_data.get("mfa", 0)} m')
-            report_lines.append(f'MOM: {mfa_data.get("mom", 0)} m')
-            report_lines.append(f'QM: {mfa_data.get("qm", 0)} m')
-        report_lines.append('')
+        i_interp = i_draft.get('interpolation_results', {})
+        f_interp = f_draft.get('interpolation_results', {})
 
-        # Displacement corrections
-        report_lines.append('===========================')
-        report_lines.append('Displacement Corrections:')
-        if 'displacement_corrections' in calculation_data:
-            disp = calculation_data['displacement_corrections']
-            report_lines.append(
-                f'Displacement: {disp.get("displacement", 0)} mt')
-            report_lines.append(
-                f'Dis Corrected for trim: {disp.get("corrected_displacement_for_trim", 0)} mt')
-            report_lines.append(
-                f'Dis Corrected for density: {disp.get("corrected_displacement_for_density", 0)} mt')
-            report_lines.append(
-                f'Total deductibles: {disp.get("total_deductibles", 0)} mt')
-            report_lines.append(
-                f'Net Displacement: {disp.get("load_displacement", 0)} mt')
-            report_lines.append(f'Cargo + const: {disp.get("cargo", 0)} mt')
+        report_items = [
+            ("Fwd Draft Corrected", i_corr.get('draft_for_corrected', 0),
+             f_corr.get('draft_for_corrected', 0), 2),
+            ("Aft Draft Corrected", i_corr.get('draft_aft_corrected', 0),
+             f_corr.get('draft_aft_corrected', 0), 2),
+            ("Mid Draft Corrected", i_corr.get('draft_mid_corrected', 0),
+             f_corr.get('draft_mid_corrected', 0), 2),
+            ("Corrected Trim", i_corr.get('trim_corrected', 0),
+             f_corr.get('trim_corrected', 0), 2),
+            ("LBM", i_corr.get('lbm', 0), f_corr.get('lbm', 0), 2),
+            ("", "", "", 0),
+            ("MFA", i_mfa.get('mfa', 0), f_mfa.get('mfa', 0), 2),
+            ("MOM", i_mfa.get('mom', 0), f_mfa.get('mom', 0), 2),
+            ("QM", i_mfa.get('qm', 0), f_mfa.get('qm', 0), 2),
+            ("", "", "", 0),
+            ("Displacement", i_interp.get('displacement', 0),
+             f_interp.get('displacement', 0), 3),
+            ("TPC", i_interp.get('tpc', 0), f_interp.get('tpc', 0), 3),
+            ("LCF", i_interp.get('lcf', 0), f_interp.get('lcf', 0), 3),
+        ]
 
-        return '\n'.join(report_lines)
+        for label, i_val, f_val, precision in report_items:
+            if label == "":
+                lines.append("")
+                continue
+
+            i_str = f"{i_val:.{precision}f}" if isinstance(
+                i_val, (int, float)) else str(i_val)
+            f_str = f"{f_val:.{precision}f}" if isinstance(
+                f_val, (int, float)) else str(f_val)
+
+            line = f"{label:<20}{i_str:<{col_width-20}}{f_str:<{col_width}}"
+            lines.append(line)
+
+        return '\n'.join(lines)

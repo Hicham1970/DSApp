@@ -5,12 +5,13 @@ from tkinter import ttk
 class BasePage(ttk.Frame):
     """Base class for all pages in the Draft Survey application"""
 
-    def __init__(self, master, **kwargs):
+    def __init__(self, master, controller=None, **kwargs):
         super().__init__(master, **kwargs)
         self.master = master
 
         # Common attributes for all pages
         self.frame_content = None
+        self.controller = controller
         self.title_label = None
         self.calculator = None
 
@@ -53,7 +54,7 @@ class BasePage(ttk.Frame):
         label = tk.Label(
             parent,
             text=label_text,
-            background='gray12',
+            background='gray15',
             foreground='gold',
             anchor='e'
         )
@@ -62,6 +63,33 @@ class BasePage(ttk.Frame):
         entry = ttk.Entry(parent, **kwargs)
         entry.grid(row=row, column=column+1, padx=5, pady=2, sticky='w')
         return label, entry
+
+    def create_tooltip(self, widget, text):
+        """Creates a tooltip for a given widget."""
+        tooltip_window = None
+
+        def show_tooltip(event):
+            nonlocal tooltip_window
+            if tooltip_window or not text:
+                return
+            x, y, _, _ = widget.bbox("insert")
+            x += widget.winfo_rootx() + 25
+            y += widget.winfo_rooty() + 20
+            tooltip_window = tk.Toplevel(widget)
+            tooltip_window.wm_overrideredirect(True)
+            tooltip_window.wm_geometry(f"+{x}+{y}")
+            label = tk.Label(tooltip_window, text=text, background="#FFFFE0", relief="solid", borderwidth=1,
+                             font=("tahoma", "8", "normal"))
+            label.pack(ipadx=1)
+
+        def hide_tooltip(event):
+            nonlocal tooltip_window
+            if tooltip_window:
+                tooltip_window.destroy()
+                tooltip_window = None
+
+        widget.bind("<Enter>", show_tooltip)
+        widget.bind("<Leave>", hide_tooltip)
 
     def clear_fields(self):
         """Template method to clear all input fields"""

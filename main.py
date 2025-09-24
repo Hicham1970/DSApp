@@ -14,6 +14,13 @@ class DraftSurveyApp:
         self.root.state('zoomed')
         self.root.resizable(True, True)
 
+        # Set window icon
+        try:
+            self.root.iconbitmap('images/ico.ico')
+        except tk.TclError:
+            print(
+                "Could not load icon 'images/ico.ico'. Make sure the file exists in the 'images' folder.")
+
         # Setup styles
         self.setup_styles()
 
@@ -25,9 +32,10 @@ class DraftSurveyApp:
         self.notebook.pack(fill='both', expand=True, padx=5, pady=5)
 
         # Initialize pages as notebook children
-        self.initial_page = InitialPage(self.notebook)
-        self.final_page = FinalPage(self.notebook)
-        self.recap_page = RecapPage(self.notebook)
+        self.initial_page = InitialPage(
+            self.notebook, controller=self.controller)
+        self.final_page = FinalPage(self.notebook, controller=self.controller)
+        self.recap_page = RecapPage(self.notebook, controller=self.controller)
 
         # Add pages to notebook
         self.notebook.add(self.initial_page, text="Initial Draft")
@@ -60,13 +68,13 @@ class DraftSurveyApp:
         style.configure("TFrame", background='gray15')
         style.configure("TLabelframe", background='gray15', foreground='gold')
         style.configure("TLabelframe.Label", background='gray15',
-                        foreground='gold', font=('Arial', 10, 'bold'))
+                        foreground='gold', font=('Arial', 8, 'bold'))
 
         # Configure button styles
         style.configure("TButton",
                         background='gray25',
                         foreground='black',
-                        font=('Arial', 9, 'bold'),
+                        font=('Arial', 6, 'bold'),
                         padding=5)
 
         style.map("TButton",
@@ -78,13 +86,12 @@ class DraftSurveyApp:
                         fieldbackground='gray10',
                         foreground='black',
                         insertcolor='white',
-                        font=('Arial', 9))
+                        font=('Arial', 7))
 
         # Configure label styles
         style.configure("TLabel",
-                        background='gray15',
                         foreground='white',
-                        font=('Arial', 9))
+                        font=('Arial', 7))
 
         # Configure text widget styles
         style.configure("TText",
@@ -92,7 +99,7 @@ class DraftSurveyApp:
                         foreground='black',
                         insertbackground='white',
                         selectbackground='gray30',
-                        font=('Consolas', 9))
+                        font=('Consolas', 7))
 
     def setup_data_sharing(self):
         """Setup data sharing between pages"""

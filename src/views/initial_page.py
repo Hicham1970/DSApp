@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
+from PIL import Image, ImageTk
 from src.controllers.survey_controller import SurveyController
 from src.utils.validators import DraftValidator
 
@@ -10,12 +11,16 @@ from .base_page import BasePage
 class InitialPage(BasePage):
     """Initial Draft Survey Page with comprehensive functionality"""
 
-    def __init__(self, master, **kwargs):
+    def __init__(self, master, controller=None, **kwargs):
         super().__init__(master, **kwargs)
         # Initialize all entry variables
         self.entries = {}
-        self.controller = SurveyController()
+        self.controller = controller if controller else SurveyController()
         self.validator = DraftValidator()
+
+        # Load icons
+        self._load_icons()
+        self.controller.set_survey_type('initial')
 
         # Vessel information entries
         self.vessel_name_entry = None
@@ -89,6 +94,27 @@ class InitialPage(BasePage):
 
         # Create action buttons
         self._create_action_buttons()
+
+    def _load_icons(self):
+        """Loads all icons used on this page."""
+        icon_size = (24, 24)  # Define a standard icon size
+
+        try:
+            self.clear_icon_photo = ImageTk.PhotoImage(
+                Image.open("images/clear-erase.png").resize(icon_size, Image.LANCZOS))
+            self.save_icon_photo = ImageTk.PhotoImage(
+                Image.open("images/save_data.png").resize(icon_size, Image.LANCZOS))
+            self.load_icon_photo = ImageTk.PhotoImage(
+                Image.open("images/upload.png").resize(icon_size, Image.LANCZOS))
+            self.report_icon_photo = ImageTk.PhotoImage(
+                Image.open("images/report.png").resize(icon_size, Image.LANCZOS))
+        except FileNotFoundError as e:
+            print(
+                f"Icon Error: Could not load icon: {e}. Please ensure images are in the 'images' folder.")
+            self.clear_icon_photo = self.save_icon_photo = self.load_icon_photo = self.report_icon_photo = None
+        except Exception as e:
+            print(f"Icon Error: An error occurred loading icons: {e}")
+            self.clear_icon_photo = self.save_icon_photo = self.load_icon_photo = self.report_icon_photo = None
 
     def _create_vessel_tab(self):
         """Create vessel information tab"""
@@ -387,31 +413,53 @@ class InitialPage(BasePage):
         left_buttons.grid(row=0, column=0, sticky='w')
 
         ttk.Button(left_buttons, text="Calculate Drafts",
+                   # No icon for these
                    command=self.calculate_corrected_drafts).pack(side='left', padx=5)
         ttk.Button(left_buttons, text="Calculate MFA/MOM/QM",
+                   # No icon for these
                    command=self.calculate_mfa_mom_qm).pack(side='left', padx=5)
         ttk.Button(left_buttons, text="Interpolate Values",
+                   # No icon for these
                    command=self.calculate_interpolation).pack(side='left', padx=5)
         ttk.Button(left_buttons, text="Calculate MTC",
+                   # No icon for these
                    command=self.calculate_mtc).pack(side='left', padx=5)
         ttk.Button(left_buttons, text="Calculate Trim Corrections",
+                   # No icon for these
                    command=self.calculate_trim_corrections).pack(side='left', padx=5)
 
         # Right side buttons
         right_buttons = ttk.Frame(button_frame)
         right_buttons.grid(row=0, column=1, sticky='e')
 
-        ttk.Button(right_buttons, text="Generate Report",
-                   command=self.generate_report).pack(side='right', padx=5)
-        ttk.Button(right_buttons, text="Save Data",
-                   command=self.save_data).pack(side='right', padx=5)
-        ttk.Button(right_buttons, text="Load Data",
-                   command=self.load_data).pack(side='right', padx=5)
-        ttk.Button(right_buttons, text="Clear All",
-                   command=self.clear_all).pack(side='right', padx=5)
+        # Generate Report Button
+        report_btn = ttk.Button(right_buttons, image=self.report_icon_photo,
+                                command=self.generate_report)
+        report_btn.pack(side='right', padx=5)
+        self.create_tooltip(report_btn, "Generate comprehensive survey report")
+
+        # Save Data Button
+        save_btn = ttk.Button(right_buttons, image=self.save_icon_photo,
+                              command=self.save_data)
+        save_btn.pack(side='right', padx=5)
+        self.create_tooltip(save_btn, "Save current survey data to a file")
+
+        # Load Data Button
+        load_btn = ttk.Button(right_buttons, image=self.load_icon_photo,
+                              command=self.load_data)
+        load_btn.pack(side='right', padx=5)
+        self.create_tooltip(load_btn, "Load survey data from a file")
+
+        # Clear All Button
+        clear_btn = ttk.Button(right_buttons, image=self.clear_icon_photo,
+                               command=self.clear_all)
+        clear_btn.pack(side='right', padx=5)
+        self.create_tooltip(
+            clear_btn, "Clear all input fields and calculated data")
 
     def calculate_corrected_drafts(self):
         """Calculate corrected drafts from observed values"""
+        self.controller.set_survey_type('initial')
         try:
             # Validate vessel data
             vessel_data = {
@@ -487,6 +535,7 @@ class InitialPage(BasePage):
 
     def calculate_mfa_mom_qm(self):
         """Calculate MFA, MOM, and QM values"""
+        self.controller.set_survey_type('initial')
         try:
             corrected_drafts = self.controller.survey_data.get_draft_data().get(
                 'corrected_drafts', {})
@@ -509,6 +558,7 @@ class InitialPage(BasePage):
 
     def calculate_interpolation(self):
         """Calculate interpolated values"""
+        self.controller.set_survey_type('initial')
         try:
             # Get interpolation data
             interp_data = {key: entry.get() for key, entry in self.entries.items()
@@ -550,6 +600,7 @@ class InitialPage(BasePage):
 
     def calculate_mtc(self):
         """Calculate MTC values"""
+        self.controller.set_survey_type('initial')
         try:
             # Get MTC data
             mtc_data = {key: entry.get() for key, entry in self.entries.items()
@@ -584,6 +635,7 @@ class InitialPage(BasePage):
 
     def calculate_trim_corrections(self):
         """Calculate first and second trim corrections."""
+        self.controller.set_survey_type('initial')
         try:
             draft_data = self.controller.survey_data.get_draft_data()
             corrected_drafts = draft_data.get('corrected_drafts', {})

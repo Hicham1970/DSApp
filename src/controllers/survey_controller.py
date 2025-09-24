@@ -11,14 +11,18 @@ class SurveyController:
         self.survey_data = SurveyData()
         self.validator = DraftValidator()
 
+    def set_survey_type(self, survey_type: str):
+        """Set the current survey type ('initial' or 'final')"""
+        self.survey_data.current_survey = survey_type
+
     def set_vessel_information(self, vessel_name: str = None, draft_number: str = None,
-                              time_sheet: dict = None):
+                               time_sheet: dict = None):
         """Set vessel information"""
         self.survey_data.set_vessel_data(vessel_name, draft_number, time_sheet)
 
     def set_observed_drafts(self, draft_for_port: float = 0, draft_for_star: float = 0,
-                           draft_mid_port: float = 0, draft_mid_star: float = 0,
-                           draft_aft_port: float = 0, draft_aft_star: float = 0):
+                            draft_mid_port: float = 0, draft_mid_star: float = 0,
+                            draft_aft_port: float = 0, draft_aft_star: float = 0):
         """Set observed draft readings"""
         self.survey_data.set_observed_drafts(
             draft_for_port, draft_for_star, draft_mid_port, draft_mid_star,
@@ -26,9 +30,9 @@ class SurveyController:
         )
 
     def calculate_corrected_drafts(self, lbp: float, distance_from_for_pp: float,
-                                  distance_from_aft_pp: float, distance_from_mid_pp: float,
-                                  position_from_for_pp: str, position_from_aft_pp: str,
-                                  position_from_mid_pp: str, trim_observed: float) -> dict:
+                                   distance_from_aft_pp: float, distance_from_mid_pp: float,
+                                   position_from_for_pp: str, position_from_aft_pp: str,
+                                   position_from_mid_pp: str, trim_observed: float) -> dict:
         """
         Calculate corrected drafts using observed values
         """
@@ -55,7 +59,7 @@ class SurveyController:
         return corrected_drafts
 
     def calculate_mfa_mom_qm(self, draft_for_corrected: float, draft_aft_corrected: float,
-                            draft_mid_corrected: float) -> dict:
+                             draft_mid_corrected: float) -> dict:
         """
         Calculate MFA, MOM, and QM values
         """
@@ -67,34 +71,38 @@ class SurveyController:
         return mfa_mom_qm
 
     def calculate_interpolation(self, qm: float, draft_sup: float, draft_inf: float,
-                               displacement_sup: float, displacement_inf: float,
-                               tpc_sup: float, tpc_inf: float,
-                               lcf_sup: float, lcf_inf: float) -> dict:
+                                displacement_sup: float, displacement_inf: float,
+                                tpc_sup: float, tpc_inf: float,
+                                lcf_sup: float, lcf_inf: float) -> dict:
         """
-        Calculate interpolated values for displacement, TPC, and LCF
+        Calculate and store interpolated values for displacement, TPC, and LCF
         """
-        return self.calculator.calculate_interpolation_values(
+        interp_results = self.calculator.calculate_interpolation_values(
             qm, draft_sup, draft_inf, displacement_sup, displacement_inf,
             tpc_sup, tpc_inf, lcf_sup, lcf_inf
         )
+        self.survey_data.set_interpolation_results(interp_results)
+        return interp_results
 
     def calculate_mtc_values(self, d_plus50_sup: float, d_plus50_inf: float, d_plus50: float,
-                            mtc_plus50_sup: float, mtc_plus50_inf: float,
-                            d_moins50_sup: float, d_moins50_inf: float, d_moins50: float,
-                            mtc_moins50_sup: float, mtc_moins50_inf: float) -> dict:
+                             mtc_plus50_sup: float, mtc_plus50_inf: float,
+                             d_moins50_sup: float, d_moins50_inf: float, d_moins50: float,
+                             mtc_moins50_sup: float, mtc_moins50_inf: float) -> dict:
         """
-        Calculate MTC values using interpolation
+        Calculate and store MTC values using interpolation
         """
-        return self.calculator.calculate_mtc_values(
+        mtc_results = self.calculator.calculate_mtc_values(
             d_plus50_sup, d_plus50_inf, d_plus50,
             mtc_plus50_sup, mtc_plus50_inf,
             d_moins50_sup, d_moins50_inf, d_moins50,
             mtc_moins50_sup, mtc_moins50_inf
         )
+        self.survey_data.set_mtc_results(mtc_results)
+        return mtc_results
 
     def calculate_trim_corrections(self, draft_for_corrected: float, draft_aft_corrected: float,
-                                  tpc: float, lcf: float, lbp: float, delta_mtc: float,
-                                  displacement: float) -> dict:
+                                   tpc: float, lcf: float, lbp: float, delta_mtc: float,
+                                   displacement: float) -> dict:
         """
         Calculate trim corrections
         """
@@ -105,7 +113,7 @@ class SurveyController:
         return trim_corrections
 
     def calculate_density_corrections(self, table_density: float, dock_density: float,
-                                     corrected_displacement_for_trim: float) -> float:
+                                      corrected_displacement_for_trim: float) -> float:
         """
         Calculate density corrections
         """
@@ -114,9 +122,10 @@ class SurveyController:
         )
 
     def set_bunker_data(self, ballast: float = 0, fuel: float = 0, gas_oil: float = 0,
-                       lub_oil: float = 0, slops: float = 0, others: float = 0):
+                        lub_oil: float = 0, slops: float = 0, others: float = 0):
         """Set bunker quantities"""
-        self.survey_data.set_bunker_data(ballast, fuel, gas_oil, lub_oil, slops, others)
+        self.survey_data.set_bunker_data(
+            ballast, fuel, gas_oil, lub_oil, slops, others)
 
     def calculate_total_deductibles(self) -> float:
         """Calculate total deductibles from bunker data"""
@@ -131,7 +140,7 @@ class SurveyController:
         )
 
     def calculate_load_displacement(self, corrected_displacement: float,
-                                   operation_type: str, net_init_displacement: float = 0) -> dict:
+                                    operation_type: str, net_init_displacement: float = 0) -> dict:
         """
         Calculate load displacement and cargo
         """
@@ -155,10 +164,10 @@ class SurveyController:
         """
         Generate complete survey report
         """
-        return self.calculator.format_survey_report(
+        return self.calculator.format_two_column_report(
             self.survey_data.get_vessel_data(),
-            self.survey_data.get_draft_data(),
-            self.survey_data.get_calculation_data()
+            self.survey_data.initial,
+            self.survey_data.final
         )
 
     def save_survey_data(self, filename: str):
@@ -201,7 +210,6 @@ class SurveyController:
         """Get summary of current survey data"""
         return {
             'vessel_data': self.survey_data.get_vessel_data(),
-            'draft_data': self.survey_data.get_draft_data(),
-            'calculation_data': self.survey_data.get_calculation_data(),
-            'bunker_data': self.survey_data.get_bunker_data()
+            'initial': self.survey_data.initial,
+            'final': self.survey_data.final,
         }

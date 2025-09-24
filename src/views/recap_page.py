@@ -3,6 +3,7 @@ import tkinter as tk
 from datetime import datetime
 from tkinter import messagebox, ttk, filedialog
 
+from PIL import Image, ImageTk
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 
@@ -13,10 +14,13 @@ from .base_page import BasePage
 class RecapPage(BasePage):
     """Recap page for displaying survey summary and generating reports"""
 
-    def __init__(self, master, **kwargs):
+    def __init__(self, master, controller=None, **kwargs):
         super().__init__(master, **kwargs)
-        self.controller = SurveyController()
+        self.controller = controller if controller else SurveyController()
         self.value_labels = {}
+
+        # Load icons
+        self._load_icons()
 
         # Create the interface
         self.create_frame_content()
@@ -66,7 +70,29 @@ class RecapPage(BasePage):
                     text=f"{cargo_data.get('quantity', 0):.3f}")
 
         except Exception as e:
-            messagebox.showerror("Display Error", f"Error updating display: {str(e)}")
+            messagebox.showerror(
+                "Display Error", f"Error updating display: {str(e)}")
+
+    def _load_icons(self):
+        """Loads all icons used on this page."""
+        icon_size = (24, 24)  # Define a standard icon size
+
+        try:
+            self.refresh_icon_photo = ImageTk.PhotoImage(
+                Image.open("images/refresh.png").resize(icon_size, Image.LANCZOS))
+            self.report_icon_photo = ImageTk.PhotoImage(
+                Image.open("images/report.png").resize(icon_size, Image.LANCZOS))
+            self.export_pdf_icon_photo = ImageTk.PhotoImage(
+                Image.open("images/export_pdf.png").resize(icon_size, Image.LANCZOS))
+            self.save_summary_icon_photo = ImageTk.PhotoImage(
+                Image.open("images/save_data.png").resize(icon_size, Image.LANCZOS))
+        except FileNotFoundError as e:
+            print(
+                f"Icon Error: Could not load icon: {e}. Please ensure images are in the 'images' folder.")
+            self.refresh_icon_photo = self.report_icon_photo = self.export_pdf_icon_photo = self.save_summary_icon_photo = None
+        except Exception as e:
+            print(f"Icon Error: An error occurred loading icons: {e}")
+            self.refresh_icon_photo = self.report_icon_photo = self.export_pdf_icon_photo = self.save_summary_icon_photo = None
 
     def create_frame_content(self):
         """Create the main content of the recap page"""
@@ -94,7 +120,8 @@ class RecapPage(BasePage):
         keys = ['initial_mean', 'initial_displacement', 'initial_deductibles']
 
         for i, (text, key) in enumerate(zip(labels, keys)):
-            ttk.Label(frame, text=text).grid(row=i, column=0, padx=5, pady=2, sticky='w')
+            ttk.Label(frame, text=text).grid(
+                row=i, column=0, padx=5, pady=2, sticky='w')
             label = ttk.Label(frame, text="0.000")
             label.grid(row=i, column=1, padx=5, pady=2, sticky='e')
             self.value_labels[key] = label
@@ -108,7 +135,8 @@ class RecapPage(BasePage):
         keys = ['final_mean', 'final_displacement', 'final_deductibles']
 
         for i, (text, key) in enumerate(zip(labels, keys)):
-            ttk.Label(frame, text=text).grid(row=i, column=0, padx=5, pady=2, sticky='w')
+            ttk.Label(frame, text=text).grid(
+                row=i, column=0, padx=5, pady=2, sticky='w')
             label = ttk.Label(frame, text="0.000")
             label.grid(row=i, column=1, padx=5, pady=2, sticky='e')
             self.value_labels[key] = label
@@ -152,33 +180,49 @@ class RecapPage(BasePage):
         left_buttons = ttk.Frame(button_frame)
         left_buttons.pack(side='left')
 
-        ttk.Button(
+        # Refresh Data Button
+        refresh_btn = ttk.Button(
             left_buttons,
-            text="Refresh Data",
+            image=self.refresh_icon_photo,
             command=self.refresh_data
-        ).pack(side='left', padx=5)
+        )
+        refresh_btn.pack(side='left', padx=5)
+        self.create_tooltip(
+            refresh_btn, "Refresh displayed data from controller")
 
-        ttk.Button(
+        # Generate Report Button
+        generate_report_btn = ttk.Button(
             left_buttons,
-            text="Generate Report",
+            image=self.report_icon_photo,
             command=self.generate_report
-        ).pack(side='left', padx=5)
+        )
+        generate_report_btn.pack(side='left', padx=5)
+        self.create_tooltip(generate_report_btn,
+                            "Generate comprehensive survey report in a dialog")
 
         # Right side buttons
         right_buttons = ttk.Frame(button_frame)
         right_buttons.pack(side='right')
 
-        ttk.Button(
+        # Export PDF Button
+        export_pdf_btn = ttk.Button(
             right_buttons,
-            text="Export PDF",
+            image=self.export_pdf_icon_photo,
             command=self.export_pdf
-        ).pack(side='right', padx=5)
+        )
+        export_pdf_btn.pack(side='right', padx=5)
+        self.create_tooltip(
+            export_pdf_btn, "Export survey report to a PDF file")
 
-        ttk.Button(
+        # Save Summary Button
+        save_summary_btn = ttk.Button(
             right_buttons,
-            text="Save Summary",
+            image=self.save_summary_icon_photo,
             command=self.save_summary
-        ).pack(side='right', padx=5)
+        )
+        save_summary_btn.pack(side='right', padx=5)
+        self.create_tooltip(
+            save_summary_btn, "Save survey summary to a text file")
 
     def refresh_data(self):
         """Refresh data from controller"""
@@ -191,7 +235,8 @@ class RecapPage(BasePage):
             # Display report in a new window or dialog
             self.show_report_dialog(report)
         except Exception as e:
-            messagebox.showerror("Report Error", f"Error generating report: {str(e)}")
+            messagebox.showerror(
+                "Report Error", f"Error generating report: {str(e)}")
 
     def show_report_dialog(self, report_text):
         """Show report in a dialog window"""
@@ -231,7 +276,8 @@ class RecapPage(BasePage):
 
             # Add date
             c.setFont("Helvetica", 12)
-            c.drawString(50, height - 70, f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+            c.drawString(50, height - 70,
+                         f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}")
 
             # Get report data
             summary = self.controller.get_survey_summary()
@@ -261,7 +307,8 @@ class RecapPage(BasePage):
             messagebox.showinfo("Success", f"PDF report saved as {filename}")
 
         except Exception as e:
-            messagebox.showerror("PDF Error", f"Failed to generate PDF: {str(e)}")
+            messagebox.showerror(
+                "PDF Error", f"Failed to generate PDF: {str(e)}")
 
     def save_summary(self):
         """Save summary data to file"""
@@ -286,7 +333,8 @@ class RecapPage(BasePage):
 
                 messagebox.showinfo("Success", "Summary saved successfully!")
         except Exception as e:
-            messagebox.showerror("Save Error", f"Error saving summary: {str(e)}")
+            messagebox.showerror(
+                "Save Error", f"Error saving summary: {str(e)}")
 
     def clear_all(self):
         """Clear all data and reset display"""
