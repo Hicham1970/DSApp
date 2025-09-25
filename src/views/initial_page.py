@@ -1,9 +1,15 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
-from PIL import Image, ImageTk
 from src.controllers.survey_controller import SurveyController
 from src.utils.validators import DraftValidator
+
+from PIL import Image, ImageTk
+
+try:
+    from tkcalendar import DateEntry
+except ImportError:
+    DateEntry = None
 
 from .base_page import BasePage
 
@@ -26,6 +32,18 @@ class InitialPage(BasePage):
         self.vessel_name_entry = None
         self.draft_number_entry = None
         self.lbp_entry = None
+        self.light_ship_entry = None
+        self.declared_constant_entry = None
+        self.port_of_registry_entry = None
+        self.product_entry = None
+        self.imo_entry = None
+        self.client_entry = None
+        self.loading_port_entry = None
+        self.discharging_port_entry = None
+        self.quantity_bl_entry = None
+
+        # Time sheet entries
+        self.time_sheet_entries = {}
 
         # Draft entries
         self.draft_for_port_entry = None
@@ -46,6 +64,7 @@ class InitialPage(BasePage):
         # Trim and density entries
         self.trim_observed_entry = None
         self.dock_density_entry = None
+        self.table_density_entry = None
 
         # Bunker data entries
         self.ballast_entry = None
@@ -54,6 +73,7 @@ class InitialPage(BasePage):
         self.lub_oil_entry = None
         self.slops_entry = None
         self.others_entry = None
+        self.fresh_water_entry = None
 
         # Operation type
         self.operation_type = tk.StringVar(value='load')
@@ -73,6 +93,8 @@ class InitialPage(BasePage):
         self.notebook.pack(fill='both', expand=True, padx=5, pady=5)
 
         # Create tabs
+        self.time_sheet_tab = ttk.Frame(
+            self.notebook)  # New tab for time sheet
         self.vessel_tab = ttk.Frame(self.notebook)
         self.draft_tab = ttk.Frame(self.notebook)
         self.bunker_tab = ttk.Frame(self.notebook)
@@ -80,15 +102,18 @@ class InitialPage(BasePage):
         self.results_tab = ttk.Frame(self.notebook)
 
         self.notebook.add(self.vessel_tab, text='Vessel Info')
+        self.notebook.add(self.time_sheet_tab,
+                          text='Time Sheet')  # Add new tab
         self.notebook.add(self.draft_tab, text='Draft Readings')
-        self.notebook.add(self.bunker_tab, text='Bunker & Ballast')
+        self.notebook.add(self.bunker_tab, text='Deductibles')
         self.notebook.add(self.calculation_tab, text='Calculations')
         self.notebook.add(self.results_tab, text='Results')
 
         # Create content for each tab
         self._create_vessel_tab()
+        self._create_time_sheet_tab()  # Create content for new tab
         self._create_draft_tab()
-        self._create_bunker_tab()
+        self._create_deductibles_tab()
         self._create_calculation_tab()
         self._create_results_tab()
 
@@ -99,49 +124,158 @@ class InitialPage(BasePage):
         """Loads all icons used on this page."""
         icon_size = (24, 24)  # Define a standard icon size
 
-        try:
-            self.clear_icon_photo = ImageTk.PhotoImage(
-                Image.open("images/clear-erase.png").resize(icon_size, Image.LANCZOS))
-            self.save_icon_photo = ImageTk.PhotoImage(
-                Image.open("images/save_data.png").resize(icon_size, Image.LANCZOS))
-            self.load_icon_photo = ImageTk.PhotoImage(
-                Image.open("images/upload.png").resize(icon_size, Image.LANCZOS))
-            self.report_icon_photo = ImageTk.PhotoImage(
-                Image.open("images/report.png").resize(icon_size, Image.LANCZOS))
-        except FileNotFoundError as e:
-            print(
-                f"Icon Error: Could not load icon: {e}. Please ensure images are in the 'images' folder.")
-            self.clear_icon_photo = self.save_icon_photo = self.load_icon_photo = self.report_icon_photo = None
-        except Exception as e:
-            print(f"Icon Error: An error occurred loading icons: {e}")
-            self.clear_icon_photo = self.save_icon_photo = self.load_icon_photo = self.report_icon_photo = None
+        icon_paths = {
+            'clear_icon_photo': "images/clear-erase.png",
+            'save_icon_photo': "images/save_data.png",
+            'load_icon_photo': "images/upload.png",
+            'report_icon_photo': "images/report.png"
+        }
+
+        for attr_name, path in icon_paths.items():
+            try:
+                img = Image.open(path).resize(icon_size, Image.LANCZOS)
+                setattr(self, attr_name, ImageTk.PhotoImage(img))
+            except FileNotFoundError:
+                print(
+                    f"Icon Error: Could not find icon file: {path}. Please ensure images are in the 'images' folder.")
+                setattr(self, attr_name, None)
+            except tk.TclError as e:
+                print(
+                    f"Icon Error: TclError while loading {path}: {e}. This might indicate a corrupted image file or an issue with Pillow/Tkinter.")
+                setattr(self, attr_name, None)
+            except Exception as e:
+                print(
+                    f"Icon Error: An unexpected error occurred loading {path}: {e}")
+                setattr(self, attr_name, None)
 
     def _create_vessel_tab(self):
         """Create vessel information tab"""
         frame = ttk.Frame(self.vessel_tab)
         frame.pack(fill='both', expand=True, padx=10, pady=5)
 
-        # Validation commands
-        vcmd_numeric = (self.register(
-            DraftValidator.validate_numeric_entry_callback), '%P')
+        # Validation commands for numeric inputs
         vcmd_positive = (self.register(
             DraftValidator.validate_positive_numeric_entry_callback), '%P')
+        vcmd_numeric = (self.register(
+            DraftValidator.validate_numeric_entry_callback), '%P')
 
-        # Vessel name
+        # Operation Type
+        op_frame = ttk.LabelFrame(frame, text="Operation Type")
+        op_frame.grid(row=0, column=0, columnspan=4, pady=(0, 10), sticky='w')
+        ttk.Radiobutton(op_frame, text="Loading", variable=self.operation_type,
+                        value='load').pack(side='left', padx=5)
+        ttk.Radiobutton(op_frame, text="Discharging", variable=self.operation_type,
+                        value='discharge').pack(side='left', padx=5)
+
+        # Vessel Name
         self.vessel_name_entry = self.create_labeled_entry(
-            frame, "Vessel Name:", 0, 0, width=30
+            frame, "Vessel Name:", 1, 0, width=30
         )[1]
 
-        # Draft number
+        # Draft Number
         self.draft_number_entry = self.create_labeled_entry(
-            frame, "Draft Number:", 1, 0, width=30
+            frame, "Draft Number:", 2, 0, width=30
         )[1]
 
         # LBP (Length Between Perpendiculars)
         self.lbp_entry = self.create_labeled_entry(
-            frame, "LBP (m):", 2, 0,
-            validate='key', validatecommand=vcmd_positive, width=15
+            frame, "LBP (m):", 3, 0, validate='key', validatecommand=vcmd_positive, width=15
         )[1]
+
+        # Light Ship
+        self.light_ship_entry = self.create_labeled_entry(
+            frame, "Light Ship (mt):", 4, 0, validate='key', validatecommand=vcmd_positive, width=15
+        )[1]
+
+        # Declared Constant
+        self.declared_constant_entry = self.create_labeled_entry(
+            frame, "Declared Constant (mt):", 5, 0, validate='key', validatecommand=vcmd_numeric, width=15
+        )[1]
+
+        # Port of Registry
+        self.port_of_registry_entry = self.create_labeled_entry(
+            frame, "Port of Registry:", 1, 2, width=30
+        )[1]
+
+        # Product
+        self.product_entry = self.create_labeled_entry(
+            frame, "Product:", 4, 2, width=30
+        )[1]
+
+        # IMO
+        self.imo_entry = self.create_labeled_entry(
+            frame, "IMO:", 2, 2, width=30,
+            validate='key', validatecommand=(self.register(lambda P: P.isdigit() and len(P) <= 8), '%P')
+        )[1]
+
+        # Client
+        self.client_entry = self.create_labeled_entry(
+            frame, "Client:", 3, 2, width=30
+        )[1]
+
+        # Loading Port
+        self.loading_port_entry = self.create_labeled_entry(
+            frame, "Loading Port:", 6, 0, width=30
+        )[1]
+
+        # Discharging Port
+        self.discharging_port_entry = self.create_labeled_entry(
+            frame, "Discharging Port:", 6, 2, width=30
+        )[1]
+
+        # Quantity B/L
+        self.quantity_bl_entry = self.create_labeled_entry(
+            frame, "Quantity B/L (mt):", 7, 0, validate='key', validatecommand=vcmd_positive, width=15
+        )[1]
+
+    def _create_time_sheet_tab(self):
+        """Create time sheet tab"""
+        frame = ttk.Frame(self.time_sheet_tab)
+        frame.pack(fill='both', expand=True, padx=10, pady=5)
+
+        time_sheet_labels = [
+            "End of Sea Passage:", "Notice Tendered:", "Pilot On Board:",
+            "First Line:", "All Fast:", "Surveyor On Board:",
+            "Initial Draft Started:", "Initial Draft Completed:",
+            "Operation Started:", "Operation Completed:",
+            "Final Draft Started:", "Final Draft Completed:",
+            "Vessel Sailed:"
+        ]
+
+        if DateEntry is None:
+            # Fallback to simple Entry if tkcalendar is not installed
+            error_label = ttk.Label(
+                frame,
+                text="Warning: 'tkcalendar' is not installed. Using simple text fields.\n"
+                     "Install it for a better experience: pip install tkcalendar",
+                foreground="orange",
+                wraplength=400
+            )
+            error_label.pack(pady=(5, 10))
+            for i, label_text in enumerate(time_sheet_labels):
+                key = label_text.replace(" ", "_").replace(":", "").lower()
+                self.time_sheet_entries[key] = self.create_labeled_entry(
+                    frame, label_text, i + 1, 0, width=25)[1]
+        else:
+            # Use DateEntry for a better UX
+            for i, label_text in enumerate(time_sheet_labels):
+                key = label_text.replace(" ", "_").replace(":", "").lower()
+                label = tk.Label(frame, text=label_text,
+                                 background='black', foreground='gold')
+                label.grid(row=i, column=0, padx=5, pady=3, sticky='e')
+
+                # DateEntry for the date part
+                date_entry = DateEntry(frame, width=12, background='darkblue',
+                                       foreground='white', borderwidth=2,
+                                       date_pattern='y-mm-dd')
+                date_entry.grid(row=i, column=1, padx=5, pady=3, sticky='w')
+
+                # Simple Entry for the time part
+                time_entry = ttk.Entry(frame, width=8)
+                time_entry.grid(row=i, column=2, padx=5, pady=3, sticky='w')
+
+                # Store both widgets
+                self.time_sheet_entries[key] = (date_entry, time_entry)
 
     def _create_draft_tab(self):
         """Create draft readings tab"""
@@ -227,7 +361,7 @@ class InitialPage(BasePage):
 
         self.trim_observed_entry = self.create_labeled_entry(
             trim_frame, "Observed Trim (m):", 0, 0,
-            validate='key', validatecommand=vcmd_numeric, width=10
+            width=10, state='readonly'
         )[1]
 
         self.dock_density_entry = self.create_labeled_entry(
@@ -235,8 +369,13 @@ class InitialPage(BasePage):
             validate='key', validatecommand=vcmd_numeric, width=10
         )[1]
 
-    def _create_bunker_tab(self):
-        """Create bunker and ballast data tab"""
+        self.table_density_entry = self.create_labeled_entry(
+            trim_frame, "Table Density:", 0, 4,
+            validate='key', validatecommand=vcmd_numeric, width=10
+        )[1]
+
+    def _create_deductibles_tab(self):
+        """Create deductibles data tab"""
         frame = ttk.Frame(self.bunker_tab)
         frame.pack(fill='both', expand=True, padx=10, pady=5)
         vcmd_numeric = (self.register(
@@ -254,13 +393,13 @@ class InitialPage(BasePage):
             frame, "Slops (mt):", 4, 0, validate='key', validatecommand=vcmd_numeric)[1]
         self.others_entry = self.create_labeled_entry(
             frame, "Others (mt):", 5, 0, validate='key', validatecommand=vcmd_numeric)[1]
+        self.fresh_water_entry = self.create_labeled_entry(
+            frame, "Fresh Water (mt):", 6, 0, validate='key', validatecommand=vcmd_numeric)[1]
 
-        op_frame = ttk.LabelFrame(frame, text="Operation Type")
-        op_frame.grid(row=6, column=0, columnspan=2, pady=10, sticky='w')
-        ttk.Radiobutton(op_frame, text="Loading", variable=self.operation_type,
-                        value='load').pack(side='left', padx=5)
-        ttk.Radiobutton(op_frame, text="Discharging", variable=self.operation_type,
-                        value='discharge').pack(side='left', padx=5)
+        # Button to calculate total deductibles
+        ttk.Button(frame, text="Calculate Deductibles",
+                   command=self.calculate_total_deductibles).grid(
+            row=7, column=0, columnspan=2, pady=10)
 
     def _create_calculation_tab(self):
         """Create calculations tab"""
@@ -427,6 +566,12 @@ class InitialPage(BasePage):
         ttk.Button(left_buttons, text="Calculate Trim Corrections",
                    # No icon for these
                    command=self.calculate_trim_corrections).pack(side='left', padx=5)
+        ttk.Button(left_buttons, text="Calculate Density Correction",
+                   # No icon for these
+                   command=self.calculate_density_correction).pack(side='left', padx=5)
+        ttk.Button(left_buttons, text="Calculate Initial Results",
+                   # No icon for these
+                   command=self.calculate_initial_results).pack(side='left', padx=5)
 
         # Right side buttons
         right_buttons = ttk.Frame(button_frame)
@@ -462,18 +607,22 @@ class InitialPage(BasePage):
         self.controller.set_survey_type('initial')
         try:
             # Validate vessel data
-            vessel_data = {
+            vessel_data_for_validation = {
                 'lbp': self.lbp_entry.get(),
                 'distance_from_for_pp': self.distance_from_for_pp_entry.get(),
                 'distance_from_aft_pp': self.distance_from_aft_pp_entry.get(),
                 'distance_from_mid_pp': self.distance_from_mid_pp_entry.get(),
                 'position_from_for_pp': self.position_from_for_pp_entry.get(),
                 'position_from_aft_pp': self.position_from_aft_pp_entry.get(),
-                'position_from_mid_pp': self.position_from_mid_pp_entry.get()
+                # Add new fields for validation
+                'position_from_mid_pp': self.position_from_mid_pp_entry.get(), 'light_ship': self.light_ship_entry.get(), 'declared_constant': self.declared_constant_entry.get(), 'quantity_bl': self.quantity_bl_entry.get()
             }
 
+            # Validate all vessel related data
             is_valid, error_msg = self.controller.validate_vessel_data(
-                vessel_data)
+                vessel_data_for_validation)
+            # Note: Other string fields like port_of_registry are not validated for format here, only presence if required.
+
             if not is_valid:
                 messagebox.showerror("Validation Error", error_msg)
                 return
@@ -494,37 +643,87 @@ class InitialPage(BasePage):
                 messagebox.showerror("Validation Error", error_msg)
                 return
 
+            # Calculate and display observed trim
+            draft_for = (float(
+                observed_drafts['draft_for_port']) + float(observed_drafts['draft_for_star'])) / 2
+            draft_aft = (float(
+                observed_drafts['draft_aft_port']) + float(observed_drafts['draft_aft_star'])) / 2
+            observed_trim = draft_aft - draft_for
+
+            self.trim_observed_entry.config(state='normal')
+            self.trim_observed_entry.delete(0, tk.END)
+            self.trim_observed_entry.insert(0, f"{observed_trim:.3f}")
+            self.trim_observed_entry.config(state='readonly')
+
             # Set vessel information
+            lbp_val = float(self.lbp_entry.get()
+                            ) if self.lbp_entry.get() else None
+            light_ship_val = float(self.light_ship_entry.get(
+            )) if self.light_ship_entry.get() else None
+            declared_constant_val = float(self.declared_constant_entry.get(
+            )) if self.declared_constant_entry.get() else None
+            quantity_bl_val = float(self.quantity_bl_entry.get(
+            )) if self.quantity_bl_entry.get() else None
+            table_density_val = float(self.table_density_entry.get()
+                                      ) if self.table_density_entry.get() else None
+            dock_density_val = float(self.dock_density_entry.get()
+                                     ) if self.dock_density_entry.get() else None
+
             self.controller.set_vessel_information(
                 vessel_name=self.vessel_name_entry.get(),
-                draft_number=self.draft_number_entry.get()
+                draft_number=self.draft_number_entry.get(),
+                lbp=lbp_val,
+                light_ship=light_ship_val,
+                declared_constant=declared_constant_val,
+                port_of_registry=self.port_of_registry_entry.get(),
+                product=self.product_entry.get(),
+                loading_port=self.loading_port_entry.get(),
+                imo=self.imo_entry.get(),
+                client=self.client_entry.get(),
+                discharging_port=self.discharging_port_entry.get(),
+                quantity_bl=quantity_bl_val,
+                table_density=table_density_val,
+                dock_density=dock_density_val,
+                operation_type=self.operation_type.get()
             )
+
+            # Set time sheet information
+            time_sheet_data = {}
+            for key, (date_entry, time_entry) in self.time_sheet_entries.items():
+                time_val = time_entry.get()
+                # Combine date and time, handle placeholder for time
+                full_datetime = f"{date_entry.get()} {time_val}".strip(
+                )
+                time_sheet_data[key] = full_datetime
+            self.controller.set_time_sheet_information(time_sheet_data)
 
             # Set observed drafts
             self.controller.set_observed_drafts(
                 draft_for_port=float(observed_drafts['draft_for_port']),
                 draft_for_star=float(observed_drafts['draft_for_star']),
-                draft_mid_port=float(observed_drafts.get('draft_mid_port', 0)),
-                draft_mid_star=float(observed_drafts.get('draft_mid_star', 0)),
+                draft_mid_port=float(
+                    observed_drafts.get('draft_mid_port', 0.0)),
+                draft_mid_star=float(
+                    observed_drafts.get('draft_mid_star', 0.0)),
                 draft_aft_port=float(observed_drafts['draft_aft_port']),
                 draft_aft_star=float(observed_drafts['draft_aft_star'])
             )
 
             # Calculate corrected drafts
-            lbp = float(vessel_data['lbp'])
+            lbp = float(vessel_data_for_validation['lbp'])
             corrected_drafts = self.controller.calculate_corrected_drafts(
                 lbp=lbp,
                 distance_from_for_pp=float(
-                    vessel_data['distance_from_for_pp']),
+                    vessel_data_for_validation['distance_from_for_pp']),
                 distance_from_aft_pp=float(
-                    vessel_data['distance_from_aft_pp']),
+                    vessel_data_for_validation['distance_from_aft_pp']),
                 distance_from_mid_pp=float(
-                    vessel_data.get('distance_from_mid_pp', 0)),
-                position_from_for_pp=vessel_data['position_from_for_pp'],
-                position_from_aft_pp=vessel_data['position_from_aft_pp'],
-                position_from_mid_pp=vessel_data.get(
-                    'position_from_mid_pp', 'N/A'),
-                trim_observed=float(self.trim_observed_entry.get())
+                    vessel_data_for_validation.get('distance_from_mid_pp', 0)),
+                position_from_for_pp=vessel_data_for_validation['position_from_for_pp'],
+                position_from_aft_pp=vessel_data_for_validation['position_from_aft_pp'],
+                position_from_mid_pp=vessel_data_for_validation.get(
+                    'position_from_mid_pp', 'N/A'),  # type: ignore
+                trim_observed=observed_trim
             )
 
             # Display results
@@ -536,7 +735,7 @@ class InitialPage(BasePage):
     def calculate_mfa_mom_qm(self):
         """Calculate MFA, MOM, and QM values"""
         self.controller.set_survey_type('initial')
-        try:
+        try:  # type: ignore
             corrected_drafts = self.controller.survey_data.get_draft_data().get(
                 'corrected_drafts', {})
 
@@ -559,7 +758,7 @@ class InitialPage(BasePage):
     def calculate_interpolation(self):
         """Calculate interpolated values"""
         self.controller.set_survey_type('initial')
-        try:
+        try:  # type: ignore
             # Get interpolation data
             interp_data = {key: entry.get() for key, entry in self.entries.items()
                            if key in ['draft_sup', 'draft_inf', 'displacement_sup', 'displacement_inf',
@@ -572,7 +771,7 @@ class InitialPage(BasePage):
                 return
 
             # Get QM value
-            draft_data = self.controller.survey_data.get_draft_data()
+            draft_data = self.controller.survey_data.get_current_survey_data().get('draft_data', {})
             qm = draft_data.get('mfa_mom_qm', {}).get('qm', 0)
 
             if qm == 0:
@@ -601,7 +800,7 @@ class InitialPage(BasePage):
     def calculate_mtc(self):
         """Calculate MTC values"""
         self.controller.set_survey_type('initial')
-        try:
+        try:  # type: ignore
             # Get MTC data
             mtc_data = {key: entry.get() for key, entry in self.entries.items()
                         if key in ['d_plus50_sup', 'd_plus50_inf', 'd_plus50',
@@ -636,7 +835,7 @@ class InitialPage(BasePage):
     def calculate_trim_corrections(self):
         """Calculate first and second trim corrections."""
         self.controller.set_survey_type('initial')
-        try:
+        try:  # type: ignore
             draft_data = self.controller.survey_data.get_draft_data()
             corrected_drafts = draft_data.get('corrected_drafts', {})
             interp_results = draft_data.get('interpolation_results', {})
@@ -673,37 +872,170 @@ class InitialPage(BasePage):
         except Exception as e:
             messagebox.showerror("Calculation Error", str(e))
 
+    def calculate_density_correction(self):
+        """Calculate density correction for displacement."""
+        self.controller.set_survey_type('initial')
+        try:
+            # Get data from controller
+            vessel_data = self.controller.survey_data.get_vessel_data()
+            calculation_data = self.controller.survey_data.get_calculation_data()
+            trim_corrections = calculation_data.get('trim_corrections', {})
+
+            # Check for required data
+            if 'corrected_displacement_for_trim' not in trim_corrections:
+                messagebox.showwarning(
+                    "Warning", "Please calculate trim corrections first.")
+                return
+
+            table_density_str = self.table_density_entry.get()
+            dock_density_str = self.dock_density_entry.get()
+
+            if not table_density_str or not dock_density_str:
+                messagebox.showwarning(
+                    "Warning", "Please enter Table Density and Dock Density.")
+                return
+
+            # Perform calculation
+            density_correction_result = self.controller.calculate_density_corrections(
+                table_density=float(table_density_str),
+                dock_density=float(dock_density_str),
+                corrected_displacement_for_trim=trim_corrections['corrected_displacement_for_trim']
+            )
+
+            # Display result
+            self.display_density_correction(density_correction_result)
+
+        except KeyError as e:
+            messagebox.showerror(
+                "Missing Data", f"Required data not found: {e}")
+        except Exception as e:
+            messagebox.showerror("Calculation Error", str(e))
+
+    def calculate_total_deductibles(self):
+        """Calculate and save total deductibles."""
+        self.controller.set_survey_type('initial')
+        try:
+            bunker_data = {
+                'ballast': self.ballast_entry.get(),
+                'fuel': self.fuel_entry.get(),
+                'gas_oil': self.gas_oil_entry.get(),
+                'lub_oil': self.lub_oil_entry.get(),
+                'slops': self.slops_entry.get(),
+                'others': self.others_entry.get(),
+                'fresh_water': self.fresh_water_entry.get()
+            }
+
+            is_valid, error_msg = self.controller.validate_bunker_data(
+                bunker_data)
+            if not is_valid:
+                messagebox.showerror("Validation Error", error_msg)
+                return
+
+            total_deductibles = self.controller.calculate_total_deductibles(
+                bunker_data)
+
+            messagebox.showinfo(
+                "Success", f"Total deductibles calculated: {total_deductibles:.3f} mt")
+
+        except Exception as e:
+            messagebox.showerror(
+                "Calculation Error", f"Error calculating deductibles: {str(e)}")
+
+    def calculate_initial_results(self):
+        """
+        Calculate initial results based on operation type:
+        - 'loading': Calculates the constant.
+        - 'discharging': Calculates the cargo + constant.
+        """
+        self.controller.set_survey_type('initial')
+        try:
+            # Get necessary data from the controller
+            vessel_data = self.controller.survey_data.get_vessel_data()
+            calculation_data = self.controller.survey_data.get_calculation_data()
+
+            op_type = vessel_data.get('operation_type')
+            light_ship = vessel_data.get('light_ship')
+            corrected_displacement = calculation_data.get('density_corrections', {}).get(
+                'corrected_displacement_for_density')
+            total_deductibles = calculation_data.get('displacement_corrections', {}).get(
+                'total_deductibles')
+
+            # Validate that all required data is present
+            if not all([op_type, light_ship, corrected_displacement, total_deductibles is not None]):
+                messagebox.showwarning(
+                    "Missing Data", "Please ensure Operation Type, Light Ship, Density Correction, and Deductibles are all calculated/entered.")
+                return
+
+            # Perform calculations based on operation type
+            if op_type == 'load':
+                net_displacement = round(
+                    corrected_displacement - total_deductibles, 3)
+                constant = round(net_displacement - light_ship, 3)
+                self.controller.set_initial_results({
+                    'net_displacement': net_displacement,
+                    'constant': constant
+                })
+                self.results_text.insert(
+                    tk.END, "\n=== INITIAL RESULTS (LOADING) ===\n")
+                self.results_text.insert(
+                    tk.END, f"Net Displacement: {net_displacement:.3f} mt\n")
+                self.results_text.insert(
+                    tk.END, f"Constant: {constant:.3f} mt\n")
+            elif op_type == 'discharge':
+                load_displacement = round(
+                    corrected_displacement - total_deductibles, 3)
+                cargo_plus_constant = round(load_displacement - light_ship, 3)
+                self.controller.set_initial_results({
+                    'load_displacement': load_displacement,
+                    'cargo_plus_constant': cargo_plus_constant
+                })
+                self.results_text.insert(
+                    tk.END, "\n=== INITIAL RESULTS (DISCHARGING) ===\n")
+                self.results_text.insert(
+                    tk.END, f"Cargo + Constant: {cargo_plus_constant:.3f} mt\n")
+
+        except Exception as e:
+            messagebox.showerror("Calculation Error", str(e))
+
     def display_corrected_drafts(self, corrected_drafts: dict):
         """Display corrected draft results"""
         self.results_text.delete(1.0, tk.END)
         self.results_text.insert(tk.END, "=== CORRECTED DRAFTS ===\n\n")
+
+        vessel_data = self.controller.get_survey_summary().get('vessel_data', {})
         self.results_text.insert(
-            tk.END, f"Forward Draft: {corrected_drafts['draft_for']:.2f} m\n")
+            tk.END, f"Vessel: {vessel_data.get('vessel_name', 'N/A')} | LBP: {vessel_data.get('lbp', 'N/A')} m\n")
         self.results_text.insert(
-            tk.END, f"Aft Draft: {corrected_drafts['draft_aft']:.2f} m\n")
+            tk.END, f"Dock Density: {vessel_data.get('dock_density', 'N/A')} | Table Density: {vessel_data.get('table_density', 'N/A')}\n\n")
+
+        # Drafts
         self.results_text.insert(
-            tk.END, f"Mid Draft: {corrected_drafts['draft_mid']:.2f} m\n")
+            tk.END, f"Forward Draft: {corrected_drafts['draft_for']:.3f} m\n")
         self.results_text.insert(
-            tk.END, f"Corrected Forward Draft: {corrected_drafts['draft_for_corrected']:.2f} m\n")
+            tk.END, f"Aft Draft: {corrected_drafts['draft_aft']:.3f} m\n")
         self.results_text.insert(
-            tk.END, f"Corrected Aft Draft: {corrected_drafts['draft_aft_corrected']:.2f} m\n")
+            tk.END, f"Mid Draft: {corrected_drafts['draft_mid']:.3f} m\n")
         self.results_text.insert(
-            tk.END, f"Corrected Mid Draft: {corrected_drafts['draft_mid_corrected']:.2f} m\n")
+            tk.END, f"Corrected Forward Draft: {corrected_drafts['draft_for_corrected']:.3f} m\n")
         self.results_text.insert(
-            tk.END, f"Observed Trim: {corrected_drafts['trim_observed']:.2f} m\n")
+            tk.END, f"Corrected Aft Draft: {corrected_drafts['draft_aft_corrected']:.3f} m\n")
         self.results_text.insert(
-            tk.END, f"Corrected Trim: {corrected_drafts.get('trim_corrected', 0.0):.2f} m\n")
+            tk.END, f"Corrected Mid Draft: {corrected_drafts['draft_mid_corrected']:.3f} m\n")
         self.results_text.insert(
-            tk.END, f"LBM: {corrected_drafts['lbm']:.2f} m\n")
+            tk.END, f"Observed Trim: {corrected_drafts['trim_observed']:.3f} m\n")
+        self.results_text.insert(
+            tk.END, f"Corrected Trim: {corrected_drafts.get('trim_corrected', 0.0):.3f} m\n")
+        self.results_text.insert(
+            tk.END, f"LBM: {corrected_drafts['lbm']:.3f} m\n")
 
     def display_mfa_mom_qm(self, mfa_mom_qm: dict):
         """Display MFA/MOM/QM results"""
         if self.results_text.get(1.0, tk.END).strip() == "":
             self.results_text.delete(1.0, tk.END)
         self.results_text.insert(tk.END, "\n=== MFA/MOM/QM ===\n")
-        self.results_text.insert(tk.END, f"MFA: {mfa_mom_qm['mfa']:.2f} m\n")
-        self.results_text.insert(tk.END, f"MOM: {mfa_mom_qm['mom']:.2f} m\n")
-        self.results_text.insert(tk.END, f"QM: {mfa_mom_qm['qm']:.2f} m\n")
+        self.results_text.insert(tk.END, f"MFA: {mfa_mom_qm['mfa']:.3f} m\n")
+        self.results_text.insert(tk.END, f"MOM: {mfa_mom_qm['mom']:.3f} m\n")
+        self.results_text.insert(tk.END, f"QM: {mfa_mom_qm['qm']:.3f} m\n")
 
     def display_interpolation_results(self, interp_results: dict):
         """Display interpolation results"""
@@ -720,23 +1052,29 @@ class InitialPage(BasePage):
         """Display MTC calculation results"""
         self.results_text.insert(tk.END, "\n=== MTC RESULTS ===\n")
         self.results_text.insert(
-            tk.END, f"MTC1 (MTC+): {mtc_results['mtc1']:.2f}\n")
+            tk.END, f"MTC1 (MTC+): {mtc_results['mtc1']:.3f}\n")
         self.results_text.insert(
-            tk.END, f"MTC2 (MTC-): {mtc_results['mtc2']:.2f}\n")
+            tk.END, f"MTC2 (MTC-): {mtc_results['mtc2']:.3f}\n")
         self.results_text.insert(
-            tk.END, f"Delta MTC: {mtc_results['delta_mtc']:.2f}\n")
+            tk.END, f"Delta MTC: {mtc_results['delta_mtc']:.3f}\n")
 
     def display_trim_corrections(self, trim_corrections: dict):
         """Display trim correction results"""
         self.results_text.insert(tk.END, "\n=== TRIM CORRECTIONS ===\n")
         self.results_text.insert(
-            tk.END, f"1st Trim Correction: {trim_corrections['first_trim_correction']:.2f} mt\n")
+            tk.END, f"1st Trim Correction: {trim_corrections['first_trim_correction']:.3f} mt\n")
         self.results_text.insert(
-            tk.END, f"2nd Trim Correction: {trim_corrections['second_trim_correction']:.2f} mt\n")
+            tk.END, f"2nd Trim Correction: {trim_corrections['second_trim_correction']:.3f} mt\n")
         self.results_text.insert(
-            tk.END, f"Total Trim Correction: {trim_corrections['first_trim_correction'] + trim_corrections['second_trim_correction']:.2f} mt\n")
+            tk.END, f"Total Trim Correction: {trim_corrections['first_trim_correction'] + trim_corrections['second_trim_correction']:.3f} mt\n")
         self.results_text.insert(
-            tk.END, f"Displacement Corrected for Trim: {trim_corrections['corrected_displacement_for_trim']:.2f} mt\n")
+            tk.END, f"Displacement Corrected for Trim: {trim_corrections['corrected_displacement_for_trim']:.3f} mt\n")
+
+    def display_density_correction(self, density_correction: dict):
+        """Display density correction results"""
+        self.results_text.insert(tk.END, "\n=== DENSITY CORRECTION ===\n")
+        self.results_text.insert(
+            tk.END, f"Displacement Corrected for Density: {density_correction['corrected_displacement_for_density']:.3f} mt\n")
 
     def generate_report(self):
         """Generate complete survey report"""
@@ -780,54 +1118,119 @@ class InitialPage(BasePage):
             survey_data = self.controller.get_survey_summary()
 
             # Populate vessel data
-            vessel_data = survey_data.get('vessel_data', {})
-            if 'vessel_name' in vessel_data:
-                self.vessel_name_entry.delete(0, tk.END)
-                self.vessel_name_entry.insert(0, vessel_data['vessel_name'])
+            vessel_data = survey_data.get('vessel_data', {})  # type: ignore
+            self._set_entry_value(self.vessel_name_entry,
+                                  vessel_data.get('vessel_name', ''))
+            self._set_entry_value(self.draft_number_entry,
+                                  vessel_data.get('draft_number', ''))
+            self._set_entry_value(self.lbp_entry, vessel_data.get('lbp', ''))
+            self._set_entry_value(self.light_ship_entry,
+                                  vessel_data.get('light_ship', ''))
+            self._set_entry_value(
+                self.declared_constant_entry, vessel_data.get('declared_constant', ''))
+            self._set_entry_value(
+                self.port_of_registry_entry, vessel_data.get('port_of_registry', ''))
+            self._set_entry_value(self.product_entry,
+                                  vessel_data.get('product', ''))
+            self._set_entry_value(self.loading_port_entry,
+                                  vessel_data.get('loading_port', ''))
+            self._set_entry_value(self.imo_entry,
+                                  vessel_data.get('imo', ''))
+            self._set_entry_value(self.client_entry,
+                                  vessel_data.get('client', ''))
+            self._set_entry_value(
+                self.discharging_port_entry, vessel_data.get('discharging_port', ''))
+            self._set_entry_value(self.quantity_bl_entry,
+                                  vessel_data.get('quantity_bl', ''))
 
-            if 'draft_number' in vessel_data:
-                self.draft_number_entry.delete(0, tk.END)
-                self.draft_number_entry.insert(0, vessel_data['draft_number'])
+            # Populate time sheet data
+            time_sheet_data = vessel_data.get('time_sheet', {})
+            for key, (date_entry, time_entry) in self.time_sheet_entries.items():
+                full_datetime = time_sheet_data.get(key, '')
+                date_part, time_part = (full_datetime.split(' ', 1) + [''])[:2]
+                self._set_entry_value(date_entry, date_part)
+                if time_part:
+                    self._set_entry_value(time_entry, time_part)
+                else:
+                    self._set_entry_value(time_entry, "")
 
-            # Populate draft data
-            draft_data = survey_data.get('draft_data', {})
-            observed_drafts = draft_data.get('observed_drafts', {})
+            # Populate draft data (for initial survey)
+            initial_draft_data = survey_data.get(
+                'initial', {}).get('draft_data', {})  # type: ignore
+            observed_drafts = initial_draft_data.get('observed_drafts', {})
+            self._set_entry_value(self.draft_for_port_entry,
+                                  observed_drafts.get('draft_for_port', ''))
+            self._set_entry_value(self.draft_for_star_entry,
+                                  observed_drafts.get('draft_for_star', ''))
+            self._set_entry_value(self.draft_mid_port_entry,
+                                  observed_drafts.get('draft_mid_port', ''))
+            self._set_entry_value(self.draft_mid_star_entry,
+                                  observed_drafts.get('draft_mid_star', ''))
+            self._set_entry_value(self.draft_aft_port_entry,
+                                  observed_drafts.get('draft_aft_port', ''))
+            self._set_entry_value(self.draft_aft_star_entry,
+                                  observed_drafts.get('draft_aft_star', ''))
 
-            if observed_drafts:
-                self.draft_for_port_entry.delete(0, tk.END)
-                self.draft_for_port_entry.insert(
-                    0, str(observed_drafts.get('draft_for_port', '')))
+            # Populate positions and distances
+            self._set_entry_value(
+                self.distance_from_for_pp_entry, vessel_data.get('distance_from_for_pp', ''))
+            self._set_entry_value(
+                self.distance_from_aft_pp_entry, vessel_data.get('distance_from_aft_pp', ''))
+            self._set_entry_value(
+                self.distance_from_mid_pp_entry, vessel_data.get('distance_from_mid_pp', ''))
+            self._set_entry_value(
+                self.position_from_for_pp_entry, vessel_data.get('position_from_for_pp', ''))
+            self._set_entry_value(
+                self.position_from_aft_pp_entry, vessel_data.get('position_from_aft_pp', ''))
+            self._set_entry_value(
+                self.position_from_mid_pp_entry, vessel_data.get('position_from_mid_pp', ''))
 
-                self.draft_for_star_entry.delete(0, tk.END)
-                self.draft_for_star_entry.insert(
-                    0, str(observed_drafts.get('draft_for_star', '')))
+            # Populate trim and density
+            self._set_entry_value(self.trim_observed_entry,
+                                  vessel_data.get('trim_observed', ''))
+            self._set_entry_value(self.dock_density_entry,
+                                  vessel_data.get('dock_density', ''))
+            self._set_entry_value(self.table_density_entry,
+                                  vessel_data.get('table_density', ''))
 
-                self.draft_aft_port_entry.delete(0, tk.END)
-                self.draft_aft_port_entry.insert(
-                    0, str(observed_drafts.get('draft_aft_port', '')))
-
-                self.draft_aft_star_entry.delete(0, tk.END)
-                self.draft_aft_star_entry.insert(
-                    0, str(observed_drafts.get('draft_aft_star', '')))
+            # Populate operation type
+            self.operation_type.set(vessel_data.get('operation_type', 'load'))
 
         except Exception as e:
             messagebox.showerror("Error", f"Error populating fields: {str(e)}")
+
+    def _set_entry_value(self, entry_widget, value):
+        """Helper to set entry value, handling None and clearing existing text."""
+        if entry_widget:
+            entry_widget.delete(0, tk.END)
+            if value is not None:
+                entry_widget.insert(0, str(value))
 
     def clear_all(self):
         """Clear all form fields and data"""
         try:
             # Clear all entry fields
             for entry in [self.vessel_name_entry, self.draft_number_entry, self.lbp_entry,
+                          self.light_ship_entry, self.declared_constant_entry,
+                          self.port_of_registry_entry, self.product_entry, self.imo_entry, self.client_entry,
+                          self.loading_port_entry, self.discharging_port_entry,
+                          self.quantity_bl_entry,
                           self.draft_for_port_entry, self.draft_for_star_entry,
                           self.draft_mid_port_entry, self.draft_mid_star_entry,
                           self.draft_aft_port_entry, self.draft_aft_star_entry,
                           self.distance_from_for_pp_entry, self.distance_from_aft_pp_entry,
                           self.distance_from_mid_pp_entry, self.position_from_for_pp_entry,  # noqa
-                          self.ballast_entry, self.fuel_entry, self.gas_oil_entry, self.lub_oil_entry, self.slops_entry, self.others_entry,
+                          self.ballast_entry, self.fuel_entry, self.gas_oil_entry, self.lub_oil_entry, self.slops_entry, self.others_entry, self.fresh_water_entry,
                           self.position_from_aft_pp_entry, self.position_from_mid_pp_entry,
-                          self.trim_observed_entry, self.dock_density_entry]:
-                if entry:
+                          self.trim_observed_entry, self.dock_density_entry, self.table_density_entry]:
+                if entry:  # type: ignore
                     entry.delete(0, tk.END)
+
+            for date_entry, time_entry in self.time_sheet_entries.values():
+                if date_entry:
+                    date_entry.delete(0, tk.END)
+                if time_entry:
+                    time_entry.delete(0, tk.END)
 
             # Clear calculation entries
             for entry in self.entries.values():

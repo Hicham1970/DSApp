@@ -54,6 +54,32 @@ class DraftValidator:
         return 0 <= value <= 10000  # metric tons
 
     @staticmethod
+    def is_valid_ballast_quantity(value: float) -> bool:
+        """
+        Validate if ballast quantity is within realistic range
+        """
+        return 0 <= value <= 12000  # metric tons
+
+    @staticmethod
+    def is_valid_light_ship(value: float) -> bool:
+        """
+        Validate if light ship value is within realistic range
+        """
+        return 1000 <= value <= 200000  # metric tons
+
+    @staticmethod
+    def is_valid_declared_constant(value: float) -> bool:
+        """
+        Validate if declared constant value is within realistic range
+        """
+        return -500 <= value <= 500  # metric tons
+
+    @staticmethod
+    def is_valid_quantity_bl(value: float) -> bool:
+        """Validate if quantity-BL is within realistic range"""
+        return 0 <= value <= 200000  # metric tons
+
+    @staticmethod
     def is_valid_position(value: str) -> bool:
         """
         Validate if position is valid (A, F, N/A)
@@ -108,7 +134,8 @@ class DraftValidator:
         """
         Validate observed draft readings
         """
-        required_fields = ['draft_for_port', 'draft_for_star', 'draft_aft_port', 'draft_aft_star']
+        required_fields = ['draft_for_port', 'draft_for_star',
+                           'draft_aft_port', 'draft_aft_star']
 
         # Check required fields
         for field in required_fields:
@@ -134,7 +161,7 @@ class DraftValidator:
 
         # Validate ranges
         for draft in [draft_for_port, draft_for_star, draft_aft_port, draft_aft_star,
-                     draft_mid_port, draft_mid_star]:
+                      draft_mid_port, draft_mid_star]:
             if not DraftValidator.is_valid_draft_range(draft):
                 return False, "Draft value out of valid range (0-20m)"
 
@@ -153,8 +180,27 @@ class DraftValidator:
             if not DraftValidator.is_valid_lbp(lbp):
                 return False, "LBP out of valid range (50-400m)"
 
+        if 'light_ship' in data and data['light_ship']:
+            if not DraftValidator.is_valid_number(str(data['light_ship'])):
+                return False, "Invalid Light Ship format"
+            light_ship = float(data['light_ship'])
+            if not DraftValidator.is_valid_light_ship(light_ship):
+                return False, "Light Ship out of valid range (1000-200000 mt)"
+
+        if 'declared_constant' in data and data['declared_constant']:
+            if not DraftValidator.is_valid_number(str(data['declared_constant'])):
+                return False, "Invalid Declared Constant format"
+            declared_constant = float(data['declared_constant'])
+            if not DraftValidator.is_valid_declared_constant(declared_constant):
+                return False, "Declared Constant out of valid range (-500-500 mt)"
+
+        if 'quantity_bl' in data and data['quantity_bl']:
+            if not DraftValidator.is_valid_number(str(data['quantity_bl'])):
+                return False, "Invalid Quantity BL format"
+
         # Validate distances if provided
-        distance_fields = ['distance_from_for_pp', 'distance_from_aft_pp', 'distance_from_mid_pp']
+        distance_fields = ['distance_from_for_pp',
+                           'distance_from_aft_pp', 'distance_from_mid_pp']
         for field in distance_fields:
             if field in data and data[field]:
                 if not DraftValidator.is_valid_number(str(data[field])):
@@ -164,7 +210,8 @@ class DraftValidator:
                     return False, f"{field} out of valid range (0-200m)"
 
         # Validate positions if provided
-        position_fields = ['position_from_for_pp', 'position_from_aft_pp', 'position_from_mid_pp']
+        position_fields = ['position_from_for_pp',
+                           'position_from_aft_pp', 'position_from_mid_pp']
         for field in position_fields:
             if field in data and data[field]:
                 if not DraftValidator.is_valid_position(data[field]):
@@ -177,15 +224,23 @@ class DraftValidator:
         """
         Validate bunker quantity data
         """
-        bunker_fields = ['ballast', 'fuel', 'gas_oil', 'lub_oil', 'slops', 'others']
+        bunker_validators = {
+            'ballast': (DraftValidator.is_valid_ballast_quantity, "0-12000 mt"),
+            'fuel': (DraftValidator.is_valid_bunker_quantity, "0-10000 mt"),
+            'gas_oil': (DraftValidator.is_valid_bunker_quantity, "0-10000 mt"),
+            'lub_oil': (DraftValidator.is_valid_bunker_quantity, "0-10000 mt"),
+            'slops': (DraftValidator.is_valid_bunker_quantity, "0-10000 mt"),
+            'others': (DraftValidator.is_valid_bunker_quantity, "0-10000 mt"),
+            'fresh_water': (DraftValidator.is_valid_bunker_quantity, "0-10000 mt")
+        }
 
-        for field in bunker_fields:
+        for field, (validator, range_str) in bunker_validators.items():
             if field in data and data[field]:
                 if not DraftValidator.is_valid_number(str(data[field])):
                     return False, f"Invalid {field} format"
                 quantity = float(data[field])
-                if not DraftValidator.is_valid_bunker_quantity(quantity):
-                    return False, f"{field} out of valid range (0-10000 mt)"
+                if not validator(quantity):
+                    return False, f"{field.replace('_', ' ').title()} out of valid range ({range_str})"
 
         return True, ""
 
@@ -195,7 +250,7 @@ class DraftValidator:
         Validate interpolation table data
         """
         required_fields = ['draft_sup', 'draft_inf', 'displacement_sup', 'displacement_inf',
-                          'tpc_sup', 'tpc_inf', 'lcf_sup', 'lcf_inf']
+                           'tpc_sup', 'tpc_inf', 'lcf_sup', 'lcf_inf']
 
         for field in required_fields:
             if field not in data or not data[field]:
@@ -229,9 +284,9 @@ class DraftValidator:
         Validate MTC calculation data
         """
         required_fields = ['d_plus50_sup', 'd_plus50_inf', 'd_plus50',
-                          'mtc_plus50_sup', 'mtc_plus50_inf',
-                          'd_moins50_sup', 'd_moins50_inf', 'd_moins50',
-                          'mtc_moins50_sup', 'mtc_moins50_inf']
+                           'mtc_plus50_sup', 'mtc_plus50_inf',
+                           'd_moins50_sup', 'd_moins50_inf', 'd_moins50',
+                           'mtc_moins50_sup', 'mtc_moins50_inf']
 
         for field in required_fields:
             if field not in data or not data[field]:

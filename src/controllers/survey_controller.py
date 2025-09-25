@@ -1,3 +1,4 @@
+
 from src.models.draft_calculations import DraftCalculations
 from src.models.survey_data import SurveyData
 from src.utils.validators import DraftValidator
@@ -15,10 +16,21 @@ class SurveyController:
         """Set the current survey type ('initial' or 'final')"""
         self.survey_data.current_survey = survey_type
 
-    def set_vessel_information(self, vessel_name: str = None, draft_number: str = None,
-                               time_sheet: dict = None):
+    def set_vessel_information(self, vessel_name: str = None, draft_number: str = None, lbp: float = None,
+                               light_ship: float = None, declared_constant: float = None,
+                               port_of_registry: str = None, product: str = None,
+                               loading_port: str = None, discharging_port: str = None, imo: str = None, client: str = None,
+                               quantity_bl: float = None, table_density: float = None, operation_type: str = None,
+                               dock_density: float = None):
         """Set vessel information"""
-        self.survey_data.set_vessel_data(vessel_name, draft_number, time_sheet)
+        self.survey_data.set_vessel_data(vessel_name, draft_number, lbp,
+                                         light_ship, declared_constant, port_of_registry, product, loading_port,
+                                         discharging_port, imo, client, quantity_bl, table_density,
+                                         operation_type, dock_density)
+
+    def set_time_sheet_information(self, time_sheet_entries: dict):
+        """Set time sheet entries"""
+        self.survey_data.set_time_sheet_data(time_sheet_entries)
 
     def set_observed_drafts(self, draft_for_port: float = 0, draft_for_star: float = 0,
                             draft_mid_port: float = 0, draft_mid_star: float = 0,
@@ -36,7 +48,8 @@ class SurveyController:
         """
         Calculate corrected drafts using observed values
         """
-        observed_drafts = self.survey_data.get_draft_data().get('observed_drafts', {})
+        observed_drafts = self.survey_data.get_current_survey_data().get(
+            'draft_data', {}).get('observed_drafts', {})
 
         corrected_drafts = self.calculator.calculate_corrected_drafts(
             lbp=lbp,
@@ -110,34 +123,51 @@ class SurveyController:
             draft_for_corrected, draft_aft_corrected, tpc, lcf, lbp, delta_mtc, displacement
         )
 
+        self.survey_data.set_trim_corrections(trim_corrections)
         return trim_corrections
 
     def calculate_density_corrections(self, table_density: float, dock_density: float,
-                                      corrected_displacement_for_trim: float) -> float:
+                                      corrected_displacement_for_trim: float) -> dict:
         """
         Calculate density corrections
         """
-        return self.calculator.calculate_density_corrections(
+        density_corrections = self.calculator.calculate_density_corrections(
             table_density, dock_density, corrected_displacement_for_trim
         )
+        self.survey_data.set_density_corrections(density_corrections)
+        return density_corrections
 
     def set_bunker_data(self, ballast: float = 0, fuel: float = 0, gas_oil: float = 0,
-                        lub_oil: float = 0, slops: float = 0, others: float = 0):
+                        lub_oil: float = 0, slops: float = 0, others: float = 0, fresh_water: float = 0):
         """Set bunker quantities"""
         self.survey_data.set_bunker_data(
-            ballast, fuel, gas_oil, lub_oil, slops, others)
+            ballast, fuel, gas_oil, lub_oil, slops, others, fresh_water)
 
-    def calculate_total_deductibles(self) -> float:
+    def calculate_total_deductibles(self, bunker_data_str: dict) -> float:
         """Calculate total deductibles from bunker data"""
-        bunker_data = self.survey_data.get_bunker_data()
-        return self.calculator.calculate_total_deductibles(
-            bunker_data.get('ballast', 0),
-            bunker_data.get('fuel', 0),
-            bunker_data.get('gas_oil', 0),
-            bunker_data.get('lub_oil', 0),
-            bunker_data.get('slops', 0),
-            bunker_data.get('others', 0)
-        )
+        # Convert string data from UI to floats
+        bunker_data_float = {key: float(
+            value) if value else 0.0 for key, value in bunker_data_str.items()}
+
+        # Set the data in the model
+        self.set_bunker_data(**bunker_data_float)
+
+        # Calculate the total
+        total = self.calculator.calculate_total_deductibles(
+            **bunker_data_float)
+
+        # Store the result in the model
+        displacement_corrections = self.survey_data.get_calculation_data().get(
+            'displacement_corrections', {})
+        displacement_corrections['total_deductibles'] = total
+        self.survey_data.set_displacement_corrections(
+            displacement_corrections)
+
+        return total
+
+    def set_initial_results(self, initial_results: dict):
+        """Set initial calculation results like constant or cargo+constant."""
+        self.survey_data.set_initial_results(initial_results)
 
     def calculate_load_displacement(self, corrected_displacement: float,
                                     operation_type: str, net_init_displacement: float = 0) -> dict:
@@ -164,7 +194,7 @@ class SurveyController:
         """
         Generate complete survey report
         """
-        return self.calculator.format_two_column_report(
+        return self.calculator.format_two_column_report(  # type: ignore
             self.survey_data.get_vessel_data(),
             self.survey_data.initial,
             self.survey_data.final
