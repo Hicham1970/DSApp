@@ -4,8 +4,9 @@ from tkinter import messagebox, ttk, filedialog
 
 from PIL import Image, ImageTk
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
+from reportlab.lib.enums import TA_CENTER
 from reportlab.lib.utils import ImageReader
 from reportlab.lib import colors
 
@@ -352,36 +353,10 @@ class RecapPage(BasePage):
                 title="Save PDF Report",
                 initialfile=f"report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
             )
-            if not save_path:
-                return  # User cancelled
-
-            # --- Header function to draw logo on each page ---
-            logo_path = "images/sgs_logo.jpg"
-            try:
-                logo = ImageReader(logo_path)
-            except Exception:
-                logo = None
-                print(f"Warning: Could not load logo from {logo_path}")
-
-            def header_and_footer(canvas, doc):
-                # --- Header ---
-                canvas.saveState()
-                if logo:
-                    # Draw logo on the top right. Adjust x, y, width, height as needed.
-                    canvas.drawImage(logo, doc.width + doc.leftMargin - 80, doc.height +
-                                     doc.topMargin - 50, width=80, height=40, preserveAspectRatio=True, mask='auto')
-                canvas.restoreState()
-
-                # --- Footer ---
-                canvas.saveState()
-                canvas.setFont('Helvetica', 9)
-                page_num_text = f"Page {canvas.getPageNumber()}"
-                canvas.drawCentredString(
-                    doc.width/2 + doc.leftMargin, 30, page_num_text)
-                canvas.restoreState()
+            from reportlab.lib.colors import navy, red
 
             # 1. Generate the PDF content
-            report_text = self.controller.generate_survey_report()
+            # report_text = self.controller.generate_survey_report()
 
             doc = SimpleDocTemplate(save_path, pagesize=A4,
                                     rightMargin=72, leftMargin=72,
@@ -390,18 +365,14 @@ class RecapPage(BasePage):
             # Use a monospaced font for the report
             styles['Normal'].fontName = 'Courier'
             styles['Normal'].fontSize = 9
-            styles['Normal'].leading = 12
             styles.add(ParagraphStyle(
                 name='Title', parent=styles['Title'], fontName='Helvetica-Bold', fontSize=16, alignment=TA_CENTER, spaceAfter=20))
             styles.add(ParagraphStyle(
                 name='h2', parent=styles['h2'], fontName='Helvetica-Bold', fontSize=12, spaceBefore=10, spaceAfter=5))
-            styles['Normal'].fontSize = 8
-            styles['Normal'].leading = 12
-
-            story = []
-
-            # Replace newlines with <br/> for paragraphs
-            report_html = report_text.replace('\n', '<br/>')
+            styles.add(ParagraphStyle(name='CargoLabel', fontName='Helvetica-Bold',
+                       fontSize=10, textColor=navy, alignment=TA_CENTER))
+            styles.add(ParagraphStyle(name='DiffLabel', fontName='Helvetica-Bold',
+                       fontSize=10, textColor=red, alignment=TA_CENTER))
 
             # --- Get Data ---
             summary = self.controller.get_survey_summary()
@@ -423,6 +394,7 @@ class RecapPage(BasePage):
                 return str(temp_dict)
 
             # --- Build Story ---
+            story = []
             story.append(Paragraph("DRAFT SURVEY REPORT", styles['Title']))
 
             # --- Vessel Information (2 columns) ---
@@ -473,7 +445,7 @@ class RecapPage(BasePage):
             story.append(time_sheet_table)
 
             # --- Survey Data Comparison (3 columns table) ---
-            story.append(Paragraph("SURVEY DATA COMPARISON", styles['h2']))
+            story.append(Paragraph("DRAFT SURVEY DATA", styles['h2']))
 
             table_data = [['DESCRIPTION', 'INITIAL', 'FINAL']]
             report_items = [
@@ -521,6 +493,47 @@ class RecapPage(BasePage):
                 ('GRID', (0, 0), (-1, -1), 1, colors.black)
             ]))
             story.append(survey_table)
+
+            # --- Final Cargo Summary (on a new page) ---
+            story.append(PageBreak())
+            story.append(Paragraph("FINAL CARGO SUMMARY", styles['h2']))
+
+            i_disp = float(get_val(initial_data, 'calculation_data',
+                                   'density_corrections', 'corrected_displacement_for_density', default=0.0))
+            i_deduct = float(get_val(initial_data, 'calculation_data',
+                                     'displacement_corrections', 'total_deductibles', default=0.0))
+            i_net = i_disp - i_deduct
+
+            f_disp = float(get_val(final_data, 'calculation_data', 'density_corrections',
+                                   'corrected_displacement_for_density', default=0.0))
+            f_deduct = float(get_val(final_data, 'calculation_data',
+                                     'displacement_corrections', 'total_deductibles', default=0.0))
+            f_net = f_disp - f_deduct
+
+            cargo_qty = abs(f_net - i_net)
+            qty_bl = float(vessel_data.get('quantity_bl', 0))
+            diff = cargo_qty - qty_bl
+
+            summary_data = [
+                ['Initial Displacement:', f'{i_disp:.3f} mt'],
+                ['Initial Deductibles:', f'{i_deduct:.3f} mt'],
+                ['Initial Net Displacement:', f'{i_net:.3f} mt'],
+                [Spacer(0, 10), Spacer(0, 10)],
+                ['Final Displacement:', f'{f_disp:.3f} mt'],
+                ['Final Deductibles:', f'{f_deduct:.3f} mt'],
+                ['Final Net Displacement:', f'{f_net:.3f} mt'],
+                [Spacer(0, 20), Spacer(0, 20)],
+                [Paragraph('Cargo Quantity (Survey):', styles['CargoLabel']), Paragraph(
+                    f'{cargo_qty:.3f} mt', styles['CargoLabel'])],
+                ['Cargo Quantity (B/L):', f'{qty_bl:.3f} mt'],
+                [Paragraph('Difference:', styles['DiffLabel']),
+                 Paragraph(f'{diff:.3f} mt', styles['DiffLabel'])],
+            ]
+
+            summary_table = Table(summary_data, colWidths=[250, 250])
+            summary_table.setStyle(TableStyle(
+                [('ALIGN', (0, 0), (-1, -1), 'LEFT'), ('FONT', (0, 0), (-1, -1), 'Courier', 10), ('VALIGN', (0, 0), (-1, -1), 'MIDDLE')]))
+            story.append(summary_table)
 
             # Add space before the signature block
             story.append(Spacer(1, 72))  # type: ignore

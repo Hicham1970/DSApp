@@ -93,7 +93,8 @@ class DraftSurveyApp:
                         foreground='white',
                         font=('Arial', 7))
 
-        style.configure("Recap.TLabel", background='black', foreground='white')
+        style.configure("Recap.TLabel", background='gray15',
+                        foreground='white')
         style.configure("Cargo.TLabel", background='black',
                         foreground='cyan', font=('Arial', 10, 'bold'))
         style.configure("Difference.TLabel", background='black',

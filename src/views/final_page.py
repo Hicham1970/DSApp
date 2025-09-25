@@ -383,7 +383,7 @@ class FinalPage(BasePage):
         self.create_tooltip(
             clear_btn, "Clear all input fields and calculated data")
 
-    def clear_all(self):
+    def clear_all(self, show_message=True):
         """Clear all entry fields on this page."""
         entry_widgets = [
             self.draft_for_port_entry, self.draft_for_star_entry,  # type: ignore
@@ -398,7 +398,13 @@ class FinalPage(BasePage):
         ]
         for entry in entry_widgets:
             if entry:
-                entry.delete(0, tk.END)
+                # Handle readonly entries
+                if entry.cget('state') == 'readonly':
+                    entry.config(state='normal')
+                    entry.delete(0, tk.END)
+                    entry.config(state='readonly')
+                else:
+                    entry.delete(0, tk.END)
 
         # Clear calculation entries
         for entry in self.entries.values():
@@ -410,64 +416,79 @@ class FinalPage(BasePage):
         # Clear controller data for the final survey if it's handled separately
         # For now, we assume a single controller state. If final/initial are
         # separate states, this would need a different controller method.
-        messagebox.showinfo(
-            "Cleared", "All fields on the Final Draft page have been cleared.")
+        if show_message:
+            messagebox.showinfo(
+                "Cleared", "All fields on the Final Draft page have been cleared.")
 
     def populate_fields_from_data(self):
         """Populate form fields from loaded data"""
-        # Helper to set entry value and make it readonly
-        def set_readonly_entry(entry_widget, value):
-            if entry_widget:
-                entry_widget.config(state='normal')
-                entry_widget.delete(0, tk.END)
-                entry_widget.insert(0, str(value))
-                entry_widget.config(state='readonly')
 
         try:
             # Clear all fields first to ensure no stale data
-            self.clear_all()
+            self.clear_all(show_message=False)
 
             survey_data = self.controller.get_survey_summary()
             vessel_data = survey_data.get('vessel_data', {})
+
+            # Helper to set entry value
+            def _set_entry_value(entry_widget, value, readonly=False):
+                if entry_widget:
+                    is_readonly = entry_widget.cget('state') == 'readonly'
+                    if is_readonly:
+                        entry_widget.config(state='normal')
+
+                    entry_widget.delete(0, tk.END)
+                    if value is not None:
+                        entry_widget.insert(0, str(value))
+
+                    if is_readonly or readonly:
+                        entry_widget.config(state='readonly')
 
             # Populate draft data (for final survey)
             final_draft_data = survey_data.get(
                 'final', {}).get('draft_data', {})
             observed_drafts = final_draft_data.get('observed_drafts', {})
-            set_readonly_entry(self.draft_for_port_entry,
-                               observed_drafts.get('draft_for_port', ''))
-            set_readonly_entry(self.draft_for_star_entry,
-                               observed_drafts.get('draft_for_star', ''))
-            set_readonly_entry(self.draft_mid_port_entry,
-                               observed_drafts.get('draft_mid_port', ''))
-            set_readonly_entry(self.draft_mid_star_entry,
-                               observed_drafts.get('draft_mid_star', ''))
-            set_readonly_entry(self.draft_aft_port_entry,
-                               observed_drafts.get('draft_aft_port', ''))
-            set_readonly_entry(self.draft_aft_star_entry,
-                               observed_drafts.get('draft_aft_star', ''))
+            _set_entry_value(self.draft_for_port_entry,
+                             observed_drafts.get('draft_for_port', ''))
+            _set_entry_value(self.draft_for_star_entry,
+                             observed_drafts.get('draft_for_star', ''))
+            _set_entry_value(self.draft_mid_port_entry,
+                             observed_drafts.get('draft_mid_port', ''))
+            _set_entry_value(self.draft_mid_star_entry,
+                             observed_drafts.get('draft_mid_star', ''))
+            _set_entry_value(self.draft_aft_port_entry,
+                             observed_drafts.get('draft_aft_port', ''))
+            _set_entry_value(self.draft_aft_star_entry,
+                             observed_drafts.get('draft_aft_star', ''))
 
             # Populate positions and distances
-            set_readonly_entry(self.distance_from_for_pp_entry,
-                               vessel_data.get('distance_from_for_pp', ''))
-            set_readonly_entry(self.distance_from_aft_pp_entry,
-                               vessel_data.get('distance_from_aft_pp', ''))
-            set_readonly_entry(self.distance_from_mid_pp_entry,
-                               vessel_data.get('distance_from_mid_pp', ''))
-            set_readonly_entry(self.position_from_for_pp_entry,
-                               vessel_data.get('position_from_for_pp', ''))
-            set_readonly_entry(self.position_from_aft_pp_entry,
-                               vessel_data.get('position_from_aft_pp', ''))
-            set_readonly_entry(self.position_from_mid_pp_entry,
-                               vessel_data.get('position_from_mid_pp', ''))
+            _set_entry_value(self.distance_from_for_pp_entry,
+                             vessel_data.get('distance_from_for_pp', ''))
+            _set_entry_value(self.distance_from_aft_pp_entry,
+                             vessel_data.get('distance_from_aft_pp', ''))
+            _set_entry_value(self.distance_from_mid_pp_entry,
+                             vessel_data.get('distance_from_mid_pp', ''))
+            _set_entry_value(self.position_from_for_pp_entry,
+                             vessel_data.get('position_from_for_pp', ''))
+            _set_entry_value(self.position_from_aft_pp_entry,
+                             vessel_data.get('position_from_aft_pp', ''))
+            _set_entry_value(self.position_from_mid_pp_entry,
+                             vessel_data.get('position_from_mid_pp', ''))
 
             # Populate trim and density
-            set_readonly_entry(self.trim_observed_entry,
-                               vessel_data.get('trim_observed', ''))
-            set_readonly_entry(self.dock_density_entry,
-                               vessel_data.get('dock_density', ''))
-            set_readonly_entry(self.table_density_entry,
-                               vessel_data.get('table_density', ''))
+            # Observed trim is calculated, so we check the final survey data
+            final_corrected_drafts = final_draft_data.get(
+                'corrected_drafts', {})
+            _set_entry_value(self.trim_observed_entry, final_corrected_drafts.get(
+                'trim_observed', ''), readonly=True)
+
+            # Dock density for final survey
+            _set_entry_value(self.dock_density_entry,
+                             vessel_data.get('dock_density', ''))
+
+            # Table density comes from initial survey and should be readonly
+            _set_entry_value(self.table_density_entry, vessel_data.get(
+                'table_density', ''), readonly=True)
 
         except Exception as e:
             messagebox.showerror("Error", f"Error populating fields: {str(e)}")
@@ -799,23 +820,31 @@ class FinalPage(BasePage):
                 initial_net_disp = initial_survey.get('calculation_data', {}).get(
                     'initial_results', {}).get('net_displacement')
                 if initial_net_disp is None:
-                    messagebox.showwarning("Missing Data", "Initial Net Displacement not found. Please calculate initial results first.")
+                    messagebox.showwarning(
+                        "Missing Data", "Initial Net Displacement not found. Please calculate initial results first.")
                     return
-                load_displacement = round(corrected_displacement - total_deductibles, 3)
+                load_displacement = round(
+                    corrected_displacement - total_deductibles, 3)
                 cargo = round(load_displacement - initial_net_disp, 3)
-                self.results_text.insert(tk.END, f"Final Load Displacement: {load_displacement:.3f} mt\n")
-                self.results_text.insert(tk.END, f"Cargo Loaded: {cargo:.3f} mt\n")
+                self.results_text.insert(
+                    tk.END, f"Final Load Displacement: {load_displacement:.3f} mt\n")
+                self.results_text.insert(
+                    tk.END, f"Cargo Loaded: {cargo:.3f} mt\n")
 
             elif op_type == 'discharge':
                 initial_load_disp = initial_survey.get('calculation_data', {}).get(
                     'initial_results', {}).get('load_displacement')
                 if initial_load_disp is None:
-                    messagebox.showwarning("Missing Data", "Initial Load Displacement not found. Please calculate initial results first.")
+                    messagebox.showwarning(
+                        "Missing Data", "Initial Load Displacement not found. Please calculate initial results first.")
                     return
-                net_displacement = round(corrected_displacement - total_deductibles, 3)
+                net_displacement = round(
+                    corrected_displacement - total_deductibles, 3)
                 cargo = round(initial_load_disp - net_displacement, 3)
-                self.results_text.insert(tk.END, f"Final Net Displacement: {net_displacement:.3f} mt\n")
-                self.results_text.insert(tk.END, f"Cargo Discharged: {cargo:.3f} mt\n")
+                self.results_text.insert(
+                    tk.END, f"Final Net Displacement: {net_displacement:.3f} mt\n")
+                self.results_text.insert(
+                    tk.END, f"Cargo Discharged: {cargo:.3f} mt\n")
 
         except Exception as e:
             messagebox.showerror("Calculation Error", str(e))
@@ -826,6 +855,7 @@ class FinalPage(BasePage):
         # If both initial and final states need to be managed, the controller
         # and data model would need to be more complex.
         try:
+            report = self.controller.generate_survey_report()
             self.results_text.delete(1.0, tk.END)
             self.results_text.insert(tk.END, report)
         except Exception as e:
