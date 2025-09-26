@@ -408,38 +408,38 @@ class DraftSurveyApp:
 
     def show_guide(self):
         """Show user guide"""
-        guide_text = """**Guide Utilisateur de l'Application Draft Survey**
+        guide_text = """**Draft Survey Application User Guide**
 
-Bienvenue dans l'application Draft Survey, un outil complet pour les expertises de tirant d'eau maritimes.
+Welcome to the Draft Survey application, a comprehensive tool for maritime draft surveys.
 
-**Navigation Principale :**
-L'application est organisée en trois onglets principaux représentés par des icônes :
-- **Onglet 1 (Initial Draft) :** Pour l'expertise initiale.
-- **Onglet 2 (Final Draft) :** Pour l'expertise finale.
-- **Onglet 3 (Recap) :** Pour le résumé et la génération de rapports.
+**Main Navigation:**
+The application is organized into three main tabs represented by icons:
+- **Tab 1 (Initial Draft):** For the initial survey.
+- **Tab 2 (Final Draft):** For the final survey.
+- **Tab 3 (Recap):** For summary and report generation.
 
-**1. Expertise Initiale (Premier Onglet) :**
-   - **Vessel Info & Time Sheet :** Entrez les informations du navire et le time sheet de l'expertise.
-   - **Draft Readings & Deductibles :** Saisissez les tirants d'eau observées et les quantités de soutes et de l'eau douce.
-   - **Calculations :** Entrez les données hydrostatiques pour l'interpolation.
-   - **Results :** Visualisez les résultats des calculs au fur et à mesure.
-   - Utilisez les boutons en bas pour effectuer les calculs étape par étape.
+**1. Initial Survey (First Tab):**
+   - **Vessel Info & Time Sheet:** Enter the vessel information and the survey's time sheet.
+   - **Draft Readings & Deductibles:** Enter the observed draft readings and the quantities of bunkers and fresh water.
+   - **Calculations:** Enter the hydrostatic data for interpolation.
+   - **Results:** View the calculation results as they are computed.
+   - Use the buttons at the bottom to perform the calculations step by step.
 
-**2. Expertise Finale (Deuxième Onglet) :**
-   - Suivez les mêmes étapes pour les nouvelles lectures de tirants d'eau et les soutes.
-   - Les données du navire sont reportées de l'expertise initiale.
+**2. Final Survey (Second Tab):**
+   - Follow the same steps for the new draft readings and bunkers.
+   - The vessel data is carried over from the initial survey.
 
-**3. Résumé et Rapports (Troisième Onglet) :**
-   - Affiche un résumé complet de l'expertise.
-   - Permet de générer un rapport détaillé et de l'exporter au format PDF.
+**3. Summary and Reports (Third Tab):**
+   - Displays a complete summary of the survey.
+   - Allows you to generate a detailed report and export it to PDF.
 
-**Gestion des Données (Menu Fichier) :**
-   - **New/Open/Save Survey :** Gérez vos fichiers d'expertise (.json).
-   - **Export Report :** Exportez le rapport au format texte.
+**Data Management (File Menu):**
+   - **New/Open/Save Survey:** Manage your survey files (.json).
+   - **Export Report:** Export the report in text format.
 
-**Thèmes (Menu Thèmes) :**
-   - **Dark Theme :** Active le thème sombre pour un meilleur confort visuel.
-   - **Light Theme :** Active le thème clair standard.
+**Themes (Themes Menu):**
+   - **Dark Theme:** Activates the dark theme for better visual comfort.
+   - **Light Theme:** Activates the standard light theme.
 """
 
         tk.messagebox.showinfo("User Guide", guide_text)
