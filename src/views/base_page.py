@@ -14,6 +14,7 @@ class BasePage(ttk.Frame):
         self.controller = controller
         self.title_label = None
         self.calculator = None
+        self.labeled_entries = []
 
         # Initialize UI
         self.setup_ui()
@@ -21,15 +22,13 @@ class BasePage(ttk.Frame):
     def setup_ui(self):
         """Template method for initial UI setup"""
         # Configure grid weights - title in row 0, content in row 1
-        self.grid_rowconfigure(0, weight=0)  # Title row - no expansion
-        self.grid_rowconfigure(1, weight=1)  # Content row - expands
+        self.grid_rowconfigure(0, weight=0)
+        self.grid_rowconfigure(1, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
         # Create main content frame
         self.frame_content = ttk.Frame(self)
         self.frame_content.grid(row=1, column=0, sticky='nsew', padx=5, pady=5)
-        self.frame_content.grid_rowconfigure(0, weight=1)
-        self.frame_content.grid_columnconfigure(0, weight=1)
 
     def create_frame_content(self):
         """Template method to create page-specific content"""
@@ -60,8 +59,9 @@ class BasePage(ttk.Frame):
         )
         label.grid(row=row, column=column, padx=5, pady=2, sticky='e')
 
-        entry = ttk.Entry(parent, **kwargs)
+        entry = ttk.Entry(parent, style="TEntry", **kwargs)
         entry.grid(row=row, column=column+1, padx=5, pady=2, sticky='w')
+        self.labeled_entries.append(label)
         return label, entry
 
     def create_tooltip(self, widget, text):
@@ -90,6 +90,10 @@ class BasePage(ttk.Frame):
 
         widget.bind("<Enter>", show_tooltip)
         widget.bind("<Leave>", hide_tooltip)
+
+    def update_style(self, theme: dict):
+        """Template method to update styles for non-ttk widgets."""
+        pass
 
     def clear_fields(self):
         """Template method to clear all input fields"""

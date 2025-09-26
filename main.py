@@ -1,9 +1,12 @@
 import tkinter as tk
 from tkinter import ttk
+from PIL import Image, ImageTk
 
 from src.controllers.survey_controller import SurveyController
 from src.views.final_page import FinalPage
 from src.views.initial_page import InitialPage
+from src.utils.themes import dark_theme, light_theme
+from src.utils.config_manager import load_config, save_config
 from src.views.recap_page import RecapPage
 
 
@@ -21,8 +24,16 @@ class DraftSurveyApp:
             print(
                 "Could not load icon 'images/ico.ico'. Make sure the file exists in the 'images' folder.")
 
+        # Load saved theme or default to dark
+        config = load_config()
+        theme_name = config.get("theme", "dark")
+        self.current_theme = light_theme if theme_name == "light" else dark_theme
+
         # Setup styles
-        self.setup_styles()
+        self.setup_styles(self.current_theme)
+
+        # Load icons for main tabs
+        self._load_main_icons()  # type: ignore
 
         # Create main controller
         self.controller = SurveyController()
@@ -38,9 +49,12 @@ class DraftSurveyApp:
         self.recap_page = RecapPage(self.notebook, controller=self.controller)
 
         # Add pages to notebook
-        self.notebook.add(self.initial_page, text="Initial Draft")
-        self.notebook.add(self.final_page, text="Final Draft")
-        self.notebook.add(self.recap_page, text="Recap")
+        self.notebook.add(
+            self.initial_page, image=self.first_icon, compound=tk.LEFT)  # type: ignore
+        self.notebook.add(
+            self.final_page, image=self.second_icon, compound=tk.LEFT)  # type: ignore
+        self.notebook.add(
+            self.recap_page, image=self.recap_icon, compound=tk.LEFT)  # type: ignore
 
         # Set up data sharing between pages
         self.setup_data_sharing()
@@ -48,65 +62,123 @@ class DraftSurveyApp:
         # Create menu bar
         self.create_menu_bar()
 
-    def setup_styles(self):
+        # Create tooltips for main tabs
+        self._create_main_notebook_tooltips()
+
+    def _load_main_icons(self):
+        """Loads icons for the main notebook tabs."""
+        icon_size = (24, 24)
+        icon_paths = {
+            'recap_icon': "images/recap.png",
+            'first_icon': "images/first.png",
+            'second_icon': "images/second.png",
+        }
+        for attr_name, path in icon_paths.items():
+            try:
+                img = Image.open(path).resize(icon_size, Image.LANCZOS)
+                setattr(self, attr_name, ImageTk.PhotoImage(img))
+            except Exception as e:
+                print(f"Error loading main icon {path}: {e}")
+                setattr(self, attr_name, None)
+
+    def _create_main_notebook_tooltips(self):
+        """Create tooltips for the main notebook tabs."""
+        tooltip_texts = {
+            0: "Initial Draft Survey",
+            1: "Final Draft Survey",
+            2: "Recap and Reports"
+        }
+        tooltip_window = None
+
+        def show_tooltip(event):
+            nonlocal tooltip_window
+            try:
+                element = self.notebook.identify(event.x, event.y)
+                if "tab" in element:
+                    index = self.notebook.index(f"@{event.x},{event.y}")
+                    text = tooltip_texts.get(index)
+                    if text:
+                        if tooltip_window:
+                            tooltip_window.destroy()
+                        x, y, _, _ = self.notebook.bbox(index)
+                        x += self.notebook.winfo_rootx() + 25
+                        y += self.notebook.winfo_rooty() + 20
+                        tooltip_window = tk.Toplevel(self.notebook)
+                        tooltip_window.wm_overrideredirect(True)
+                        tooltip_window.wm_geometry(f"+{x}+{y}")
+                        label = tk.Label(tooltip_window, text=text, background="#FFFFE0",
+                                         relief="solid", borderwidth=1, font=("tahoma", "8", "normal"))
+                        label.pack(ipadx=1)
+            except tk.TclError:
+                pass  # Ignore errors when not over a tab
+
+        def hide_tooltip(event):
+            nonlocal tooltip_window
+            if tooltip_window:
+                tooltip_window.destroy()
+                tooltip_window = None
+
+        self.notebook.bind("<Motion>", show_tooltip)
+        self.notebook.bind("<Leave>", hide_tooltip)
+
+    def setup_styles(self, theme: dict):
         """Setup application styles"""
         style = ttk.Style()
 
         # Configure notebook style
-        style.configure("TNotebook", background='black')
+        style.configure("TNotebook", background=theme["notebook_bg"])
         style.configure("TNotebook.Tab",
-                        background='black',
-                        foreground='black',
+                        background=theme["tab_bg"],
+                        foreground=theme["tab_fg"],
                         font=('Arial', 10, 'bold'),
                         padding=[10, 5])
 
         style.map("TNotebook.Tab",
-                  background=[("selected", "gray20"), ("active", "gray10")],
-                  foreground=[("selected", "gold"), ("active", "light blue")])
+                  background=[("selected", theme["tab_selected_bg"]),
+                              ("active", theme["tab_active_bg"])],
+                  foreground=[("selected", theme["tab_selected_fg"]), ("active", theme["tab_active_fg"])])
 
         # Configure frame styles
-        style.configure("TFrame", background='gray15')
-        style.configure("TLabelframe", background='gray15', foreground='gold')
-        style.configure("TLabelframe.Label", background='gray15',
-                        foreground='gold', font=('Arial', 8, 'bold'))
+        style.configure("TFrame", background=theme["frame_bg"])
+        style.configure(
+            "TLabelframe", background=theme["labelframe_bg"], foreground=theme["labelframe_fg"])
+        style.configure("TLabelframe.Label", background=theme["labelframe_bg"],
+                        foreground=theme["labelframe_fg"], font=('Arial', 8, 'bold'))
 
         # Configure button styles
         style.configure("TButton",
-                        background='gray25',
-                        foreground='black',
+                        background=theme["button_bg"],
+                        foreground=theme["button_fg"],
                         font=('Arial', 6, 'bold'),
                         padding=5)
 
         style.map("TButton",
-                  background=[("active", "gray35"), ("pressed", "gray20")],
-                  foreground=[("active", "white")])
+                  background=[("active", theme["button_active_bg"]),
+                              ("pressed", theme["button_pressed_bg"])],
+                  foreground=[("active", theme["button_active_fg"])])
 
         # Configure entry styles
         style.configure("TEntry",
-                        fieldbackground='gray10',
-                        foreground='black',
-                        insertcolor='white',
+                        fieldbackground=theme["entry_bg"],
+                        foreground=theme["entry_fg"],
+                        insertcolor=theme["entry_insert"],
                         font=('Arial', 7))
 
         # Configure label styles
         style.configure("TLabel",
-                        foreground='white',
+                        background=theme["frame_bg"],
+                        foreground=theme["label_fg"],
                         font=('Arial', 7))
 
-        style.configure("Recap.TLabel", background='gray15',
-                        foreground='white')
-        style.configure("Cargo.TLabel", background='black',
-                        foreground='cyan', font=('Arial', 10, 'bold'))
-        style.configure("Difference.TLabel", background='black',
-                        foreground='orange red', font=('Arial', 10, 'bold'))
+        style.configure("Recap.TLabel", background=theme["recap_label_bg"],
+                        foreground=theme["recap_label_fg"])
+        style.configure("Cargo.TLabel", background=theme["frame_bg"],
+                        foreground=theme["cargo_label_fg"], font=('Arial', 10, 'bold'))
+        style.configure("Difference.TLabel", background=theme["frame_bg"],
+                        foreground=theme["diff_label_fg"], font=('Arial', 10, 'bold'))
 
         # Configure text widget styles
-        style.configure("TText",
-                        background='gray10',
-                        foreground='black',
-                        insertbackground='white',
-                        selectbackground='gray30',
-                        font=('Consolas', 7))
+        # Note: tk.Text is not a ttk widget, so this won't work. It must be configured directly.
 
     def setup_data_sharing(self):
         """Setup data sharing between pages"""
@@ -148,11 +220,73 @@ class DraftSurveyApp:
         help_menu.add_command(label="About", command=self.show_about)
         help_menu.add_command(label="User Guide", command=self.show_guide)
 
+        # Theme menu
+        theme_menu = tk.Menu(menubar, tearoff=0)
+        menubar.add_cascade(label="Themes", menu=theme_menu)
+        theme_menu.add_command(
+            label="Dark Theme", command=lambda: self.switch_theme(dark_theme))
+        theme_menu.add_command(label="Light Theme",
+                               command=lambda: self.switch_theme(light_theme))
+
+    def switch_theme(self, theme: dict):
+        """Switch the application theme."""
+        if self.current_theme.get("name") == theme.get("name"):
+            return
+
+        # --- Animation Start ---
+        try:
+            from PIL import ImageGrab
+
+            # 1. Grab the current window image
+            x = self.root.winfo_rootx()
+            y = self.root.winfo_rooty()
+            w = self.root.winfo_width()
+            h = self.root.winfo_height()
+            image = ImageGrab.grab((x, y, x + w, y + h))
+            photo = ImageTk.PhotoImage(image)
+
+            # 2. Create a temporary Toplevel window for the fade effect
+            fade_window = tk.Toplevel(self.root)
+            fade_window.geometry(f"{w}x{h}+{x}+{y}")
+            fade_window.overrideredirect(True)
+            tk.Label(fade_window, image=photo).pack()
+            fade_window.lift()
+
+            # 3. Apply the new theme immediately underneath
+            self.current_theme = theme
+            self.setup_styles(theme)
+            self.initial_page.update_style(theme)
+            self.final_page.update_style(theme)
+            self.recap_page.update_style(theme)
+            self.root.update_idletasks()
+
+            # 4. Animate the fade out
+            def animate_fade(alpha):
+                if alpha <= 0:
+                    fade_window.destroy()
+                    return
+                fade_window.attributes("-alpha", alpha)
+                self.root.after(20, lambda: animate_fade(alpha - 0.05))
+
+            animate_fade(1.0)
+
+            # Save the new theme choice
+            save_config({"theme": theme["name"]})
+
+        except ImportError:
+            # Fallback if ImageGrab is not available
+            self.current_theme = theme
+            self.setup_styles(theme)
+            self.initial_page.update_style(theme)
+            self.final_page.update_style(theme)
+            self.recap_page.update_style(theme)
+            save_config({"theme": theme["name"]})
+
     def new_survey(self):
         """Start a new survey"""
         if tk.messagebox.askyesno("New Survey", "Are you sure you want to start a new survey? All current data will be lost."):
             self.controller.clear_all_data()
-            self.initial_page.clear_all()
+            self.initial_page.clear_all()  # type: ignore
             self.final_page.clear_all()
             self.recap_page.clear_all()
 
@@ -270,30 +404,43 @@ class DraftSurveyApp:
     def show_about(self):
         """Show about dialog"""
         tk.messagebox.showinfo(
-            "About", "Draft Survey Application\nVersion 2.0\n\nA comprehensive tool for maritime draft surveys.")
+            "About", "Draft Survey Application\nVersion 2.0\n\nA comprehensive tool for maritime draft surveys, designed by Hicham Garoum Septembre 2025, Contactez moi pour plus d'informations a l'addresse email: h.garoum@gmail.com")
 
     def show_guide(self):
         """Show user guide"""
-        guide_text = """Draft Survey Application User Guide:
+        guide_text = """**Guide Utilisateur de l'Application Draft Survey**
 
-1. Initial Draft Survey:
-   - Enter vessel information
-   - Input observed draft readings
-   - Calculate corrected drafts
-   - Perform interpolation calculations
+Bienvenue dans l'application Draft Survey, un outil complet pour les expertises de tirant d'eau maritimes.
 
-2. Final Draft Survey:
-   - Enter final draft readings
-   - Input bunker quantities
-   - Calculate final displacement
-   - Determine cargo loaded/discharged
+**Navigation Principale :**
+L'application est organisée en trois onglets principaux représentés par des icônes :
+- **Onglet 1 (Initial Draft) :** Pour l'expertise initiale.
+- **Onglet 2 (Final Draft) :** Pour l'expertise finale.
+- **Onglet 3 (Recap) :** Pour le résumé et la génération de rapports.
 
-3. Data Management:
-   - Save/Load survey data
-   - Generate comprehensive reports
-   - Export results
+**1. Expertise Initiale (Premier Onglet) :**
+   - **Vessel Info & Time Sheet :** Entrez les informations du navire et le time sheet de l'expertise.
+   - **Draft Readings & Deductibles :** Saisissez les tirants d'eau observées et les quantités de soutes et de l'eau douce.
+   - **Calculations :** Entrez les données hydrostatiques pour l'interpolation.
+   - **Results :** Visualisez les résultats des calculs au fur et à mesure.
+   - Utilisez les boutons en bas pour effectuer les calculs étape par étape.
 
-For detailed instructions, please refer to the documentation."""
+**2. Expertise Finale (Deuxième Onglet) :**
+   - Suivez les mêmes étapes pour les nouvelles lectures de tirants d'eau et les soutes.
+   - Les données du navire sont reportées de l'expertise initiale.
+
+**3. Résumé et Rapports (Troisième Onglet) :**
+   - Affiche un résumé complet de l'expertise.
+   - Permet de générer un rapport détaillé et de l'exporter au format PDF.
+
+**Gestion des Données (Menu Fichier) :**
+   - **New/Open/Save Survey :** Gérez vos fichiers d'expertise (.json).
+   - **Export Report :** Exportez le rapport au format texte.
+
+**Thèmes (Menu Thèmes) :**
+   - **Dark Theme :** Active le thème sombre pour un meilleur confort visuel.
+   - **Light Theme :** Active le thème clair standard.
+"""
 
         tk.messagebox.showinfo("User Guide", guide_text)
 

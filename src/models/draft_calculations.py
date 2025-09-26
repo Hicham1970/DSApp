@@ -179,14 +179,15 @@ class DraftCalculations:
         if draft_sup != draft_inf:
             ratio = (qm - draft_inf) / (draft_sup - draft_inf)
             results['displacement'] = round(
-                displacement_inf + (ratio * (displacement_sup - displacement_inf)), 3)
+                abs(displacement_inf + (ratio * (displacement_sup - displacement_inf))), 3)
         else:
             results['displacement'] = displacement_inf
 
         # Calculate interpolated TPC
         if draft_sup != draft_inf:
             ratio = (qm - draft_inf) / (draft_sup - draft_inf)
-            results['tpc'] = round(tpc_inf + (ratio * (tpc_sup - tpc_inf)), 3)
+            results['tpc'] = round(
+                abs(tpc_inf + (ratio * (tpc_sup - tpc_inf))), 3)
         else:
             results['tpc'] = tpc_inf
 

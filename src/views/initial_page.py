@@ -44,6 +44,7 @@ class InitialPage(BasePage):
 
         # Time sheet entries
         self.time_sheet_entries = {}
+        self.time_sheet_tk_labels = []
 
         # Draft entries
         self.draft_for_port_entry = None
@@ -101,15 +102,19 @@ class InitialPage(BasePage):
         self.calculation_tab = ttk.Frame(self.notebook)
         self.results_tab = ttk.Frame(self.notebook)
 
-        self.notebook.add(self.vessel_tab, text='Vessel Info')
+        self.notebook.add(
+            self.vessel_tab, image=self.ship_icon, compound=tk.LEFT)
         self.notebook.add(self.time_sheet_tab,
-                          text='Time Sheet')  # Add new tab
-        self.notebook.add(self.draft_tab, text='Draft Readings')
-        self.notebook.add(self.bunker_tab, text='Deductibles')
-        self.notebook.add(self.calculation_tab, text='Calculations')
-        self.notebook.add(self.results_tab, text='Results')
+                          image=self.time_icon, compound=tk.LEFT)
+        self.notebook.add(
+            self.draft_tab, image=self.draft_readings_icon, compound=tk.LEFT)
+        self.notebook.add(
+            self.bunker_tab, image=self.deductibles_icon, compound=tk.LEFT)
+        self.notebook.add(self.calculation_tab,
+                          image=self.calculations_icon, compound=tk.LEFT)
+        self.notebook.add(self.results_tab,
+                          image=self.results_icon, compound=tk.LEFT)
 
-        # Create content for each tab
         self._create_vessel_tab()
         self._create_time_sheet_tab()  # Create content for new tab
         self._create_draft_tab()
@@ -117,8 +122,10 @@ class InitialPage(BasePage):
         self._create_calculation_tab()
         self._create_results_tab()
 
-        # Create action buttons
         self._create_action_buttons()
+
+        # Add tooltips to tabs
+        self._create_notebook_tooltips()
 
     def _load_icons(self):
         """Loads all icons used on this page."""
@@ -128,7 +135,15 @@ class InitialPage(BasePage):
             'clear_icon_photo': "images/clear-erase.png",
             'save_icon_photo': "images/save_data.png",
             'load_icon_photo': "images/upload.png",
-            'report_icon_photo': "images/report.png"
+            'report_icon_photo': "images/report.png",
+            'draft_readings_icon': "images/Draft_Observed.png",
+            'deductibles_icon': "images/bunkers.png",
+            'calculations_icon': "images/Calculation1.png",
+            'results_icon': "images/Result.png",
+            'ship_icon': "images/ship.png",
+            'time_icon': "images/time.png",
+            'calculate_icon': "images/correct.png",
+            'interpolation_icon': "images/interpolation.png"
         }
 
         for attr_name, path in icon_paths.items():
@@ -147,6 +162,65 @@ class InitialPage(BasePage):
                 print(
                     f"Icon Error: An unexpected error occurred loading {path}: {e}")
                 setattr(self, attr_name, None)
+
+    def _create_notebook_tooltips(self):
+        """Create tooltips for notebook tabs."""
+        tooltip_texts = {
+            0: "Vessel Info",
+            1: "Time Sheet",
+            2: "Draft Readings",
+            3: "Deductibles",
+            4: "Calculations",
+            5: "Results"
+        }
+        tooltip_window = None
+
+        def show_tooltip(event):
+            nonlocal tooltip_window
+            try:
+                # Identify the element under the cursor
+                element = self.notebook.identify(event.x, event.y)
+                if "tab" in element:
+                    index = self.notebook.index(f"@{event.x},{event.y}")
+                    text = tooltip_texts.get(index)
+                    if text:
+                        if tooltip_window:
+                            tooltip_window.destroy()
+                        x, y, _, _ = self.notebook.bbox(index)
+                        x += self.notebook.winfo_rootx() + 25
+                        y += self.notebook.winfo_rooty() + 20
+                        tooltip_window = tk.Toplevel(self.notebook)
+                        tooltip_window.wm_overrideredirect(True)
+                        tooltip_window.wm_geometry(f"+{x}+{y}")
+                        label = tk.Label(tooltip_window, text=text, background="#FFFFE0",
+                                         relief="solid", borderwidth=1, font=("tahoma", "8", "normal"))
+                        label.pack(ipadx=1)
+            except tk.TclError:
+                pass  # Ignore errors when the mouse is not over a tab
+
+        def hide_tooltip(event):
+            nonlocal tooltip_window
+            if tooltip_window:
+                tooltip_window.destroy()
+                tooltip_window = None
+
+        self.notebook.bind("<Enter>", show_tooltip)
+        self.notebook.bind("<Leave>", hide_tooltip)
+        self.notebook.bind("<Motion>", show_tooltip)
+
+    def update_style(self, theme: dict):
+        """Update styles for non-ttk widgets on this page."""
+        self.title_label.config(
+            background=theme["title_bg"], foreground=theme["title_fg"])
+        self.results_text.config(
+            bg=theme["text_bg"], fg=theme["text_fg"], insertbackground=theme["entry_insert"])
+        for label in self.labeled_entries:
+            label.config(background=theme["labeled_entry_label_bg"],
+                         foreground=theme["labeled_entry_label_fg"])
+        # Special handling for time sheet tk.Label widgets
+        for label in self.time_sheet_tk_labels:
+            label.config(background=theme["labeled_entry_label_bg"],
+                         foreground=theme["labeled_entry_label_fg"])
 
     def _create_vessel_tab(self):
         """Create vessel information tab"""
@@ -179,17 +253,17 @@ class InitialPage(BasePage):
 
         # LBP (Length Between Perpendiculars)
         self.lbp_entry = self.create_labeled_entry(
-            frame, "LBP (m):", 3, 0, validate='key', validatecommand=vcmd_positive, width=15
+            frame, "LBP (m):", 3, 0, validate='key', validatecommand=vcmd_positive, width=30
         )[1]
 
         # Light Ship
         self.light_ship_entry = self.create_labeled_entry(
-            frame, "Light Ship (mt):", 4, 0, validate='key', validatecommand=vcmd_positive, width=15
+            frame, "Light Ship (mt):", 4, 0, validate='key', validatecommand=vcmd_positive, width=30
         )[1]
 
         # Declared Constant
         self.declared_constant_entry = self.create_labeled_entry(
-            frame, "Declared Constant (mt):", 5, 0, validate='key', validatecommand=vcmd_numeric, width=15
+            frame, "Declared Constant (mt):", 5, 0, validate='key', validatecommand=vcmd_numeric, width=30
         )[1]
 
         # Port of Registry
@@ -199,12 +273,12 @@ class InitialPage(BasePage):
 
         # Product
         self.product_entry = self.create_labeled_entry(
-            frame, "Product:", 4, 2, width=30
+            frame, "Product:", 5, 2, width=30
         )[1]
 
         # IMO
         self.imo_entry = self.create_labeled_entry(
-            frame, "IMO:", 2, 2, width=30,
+            frame, "IMO:", 2, 2, width=15,
             validate='key', validatecommand=(self.register(lambda P: P.isdigit() and len(P) <= 8), '%P')
         )[1]
 
@@ -225,7 +299,7 @@ class InitialPage(BasePage):
 
         # Quantity B/L
         self.quantity_bl_entry = self.create_labeled_entry(
-            frame, "Quantity B/L (mt):", 7, 0, validate='key', validatecommand=vcmd_positive, width=15
+            frame, "Quantity B/L (mt):", 7, 0, validate='key', validatecommand=vcmd_positive, width=30
         )[1]
 
     def _create_time_sheet_tab(self):
@@ -260,9 +334,10 @@ class InitialPage(BasePage):
             # Use DateEntry for a better UX
             for i, label_text in enumerate(time_sheet_labels):
                 key = label_text.replace(" ", "_").replace(":", "").lower()
-                label = tk.Label(frame, text=label_text,
+                label = tk.Label(frame, text=label_text,  # This is a tk.Label, it needs manual update
                                  background='black', foreground='gold')
                 label.grid(row=i, column=0, padx=5, pady=3, sticky='e')
+                self.time_sheet_tk_labels.append(label)
 
                 # DateEntry for the date part
                 date_entry = DateEntry(frame, width=12, background='darkblue',
@@ -524,7 +599,7 @@ class InitialPage(BasePage):
         results_label = tk.Label(
             frame, text="Survey Results:", background='gray12', foreground='gold')
         results_label.pack(anchor='w', pady=5)
-
+        self.labeled_entries.append(results_label)
         self.results_text = tk.Text(frame, height=20, width=80, bg='black', fg='green',
                                     insertbackground='white', selectbackground='blue')
         self.results_text.pack(fill='both', expand=True)
@@ -551,26 +626,22 @@ class InitialPage(BasePage):
         left_buttons = ttk.Frame(button_frame)
         left_buttons.grid(row=0, column=0, sticky='w')
 
-        ttk.Button(left_buttons, text="Calculate Drafts",
-                   # No icon for these
+        ttk.Button(left_buttons, text="Drafts", image=self.calculate_icon, compound=tk.LEFT,
                    command=self.calculate_corrected_drafts).pack(side='left', padx=5)
-        ttk.Button(left_buttons, text="Calculate MFA/MOM/QM",
-                   # No icon for these
+        ttk.Button(left_buttons, text="MFA/MOM/QM", image=self.calculate_icon, compound=tk.LEFT,
                    command=self.calculate_mfa_mom_qm).pack(side='left', padx=5)
-        ttk.Button(left_buttons, text="Interpolate Values",
-                   # No icon for these
-                   command=self.calculate_interpolation).pack(side='left', padx=5)
-        ttk.Button(left_buttons, text="Calculate MTC",
-                   # No icon for these
+        interpolate_btn = ttk.Button(left_buttons, image=self.interpolation_icon,
+                                     command=self.calculate_interpolation)
+        interpolate_btn.pack(side='left', padx=5)
+        self.create_tooltip(interpolate_btn, "Interpolate Values")
+
+        ttk.Button(left_buttons, text="MTC", image=self.calculate_icon, compound=tk.LEFT,
                    command=self.calculate_mtc).pack(side='left', padx=5)
-        ttk.Button(left_buttons, text="Calculate Trim Corrections",
-                   # No icon for these
+        ttk.Button(left_buttons, text="Trim Corrections", image=self.calculate_icon, compound=tk.LEFT,
                    command=self.calculate_trim_corrections).pack(side='left', padx=5)
-        ttk.Button(left_buttons, text="Calculate Density Correction",
-                   # No icon for these
+        ttk.Button(left_buttons, text="Density Correction", image=self.calculate_icon, compound=tk.LEFT,
                    command=self.calculate_density_correction).pack(side='left', padx=5)
-        ttk.Button(left_buttons, text="Calculate Initial Results",
-                   # No icon for these
+        ttk.Button(left_buttons, text="Initial Results", image=self.calculate_icon, compound=tk.LEFT,
                    command=self.calculate_initial_results).pack(side='left', padx=5)
 
         # Right side buttons

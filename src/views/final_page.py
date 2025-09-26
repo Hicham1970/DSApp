@@ -70,10 +70,14 @@ class FinalPage(BasePage):
         self.calculation_tab = ttk.Frame(self.notebook)
         self.results_tab = ttk.Frame(self.notebook)
 
-        self.notebook.add(self.draft_tab, text='Draft Readings')
-        self.notebook.add(self.bunker_tab, text='Deductibles')
-        self.notebook.add(self.calculation_tab, text='Calculations')
-        self.notebook.add(self.results_tab, text='Results')
+        self.notebook.add(
+            self.draft_tab, image=self.draft_readings_icon, compound=tk.LEFT)
+        self.notebook.add(
+            self.bunker_tab, image=self.deductibles_icon, compound=tk.LEFT)
+        self.notebook.add(self.calculation_tab,
+                          image=self.calculations_icon, compound=tk.LEFT)
+        self.notebook.add(self.results_tab,
+                          image=self.results_icon, compound=tk.LEFT)
 
         # Create content for each tab
         self._create_draft_tab()
@@ -84,6 +88,62 @@ class FinalPage(BasePage):
         # Create action buttons
         self._create_action_buttons()
 
+        # Add tooltips to tabs
+        self._create_notebook_tooltips()
+
+    def _create_notebook_tooltips(self):
+        """Create tooltips for notebook tabs."""
+        tooltip_texts = {
+            0: "Draft Readings",
+            1: "Deductibles",
+            2: "Calculations",
+            3: "Results"
+        }
+        tooltip_window = None
+
+        def show_tooltip(event):
+            nonlocal tooltip_window
+            try:
+                # Identify the element under the cursor
+                element = self.notebook.identify(event.x, event.y)
+                if "tab" in element:
+                    index = self.notebook.index(f"@{event.x},{event.y}")
+                    text = tooltip_texts.get(index)
+                    if text:
+                        if tooltip_window:
+                            tooltip_window.destroy()
+                        x, y, _, _ = self.notebook.bbox(index)
+                        x += self.notebook.winfo_rootx() + 25
+                        y += self.notebook.winfo_rooty() + 20
+                        tooltip_window = tk.Toplevel(self.notebook)
+                        tooltip_window.wm_overrideredirect(True)
+                        tooltip_window.wm_geometry(f"+{x}+{y}")
+                        label = tk.Label(tooltip_window, text=text, background="#FFFFE0",
+                                         relief="solid", borderwidth=1, font=("tahoma", "8", "normal"))
+                        label.pack(ipadx=1)
+            except tk.TclError:
+                pass  # Ignore errors when the mouse is not over a tab
+
+        def hide_tooltip(event):
+            nonlocal tooltip_window
+            if tooltip_window:
+                tooltip_window.destroy()
+                tooltip_window = None
+
+        self.notebook.bind("<Enter>", show_tooltip)
+        self.notebook.bind("<Leave>", hide_tooltip)
+        self.notebook.bind("<Motion>", show_tooltip)
+
+    def update_style(self, theme: dict):
+        """Update styles for non-ttk widgets on this page."""
+        self.title_label.config(
+            background=theme["title_bg"], foreground=theme["title_fg"])
+        self.results_text.config(
+            bg=theme["text_bg"], fg=theme["text_fg"], insertbackground=theme["entry_insert"])
+        for label in self.labeled_entries:
+            label.config(background=theme["labeled_entry_label_bg"],
+                         foreground=theme["labeled_entry_label_fg"])
+
     def _load_icons(self):
         """Loads all icons used on this page."""
         icon_size = (24, 24)  # Define a standard icon size
@@ -92,7 +152,13 @@ class FinalPage(BasePage):
             'clear_icon_photo': "images/clear-erase.png",
             'save_icon_photo': "images/save_data.png",
             'load_icon_photo': "images/upload.png",
-            'report_icon_photo': "images/report.png"
+            'report_icon_photo': "images/report.png",
+            'draft_readings_icon': "images/Draft_Observed.png",
+            'deductibles_icon': "images/bunkers.png",
+            'calculations_icon': "images/Calculation1.png",
+            'results_icon': "images/Result.png",
+            'calculate_icon': "images/correct.png",
+            'interpolation_icon': "images/interpolation.png"
         }
 
         for attr_name, path in icon_paths.items():
@@ -332,26 +398,22 @@ class FinalPage(BasePage):
         left_buttons = ttk.Frame(button_frame)
         left_buttons.grid(row=0, column=0, sticky='w')
 
-        ttk.Button(left_buttons, text="Calculate Drafts",
-                   # No icon for these
+        ttk.Button(left_buttons, text="Drafts", image=self.calculate_icon, compound=tk.LEFT,  # type: ignore
                    command=self.calculate_corrected_drafts).pack(side='left', padx=5)
-        ttk.Button(left_buttons, text="Calculate MFA/MOM/QM",
-                   # No icon for these
+        ttk.Button(left_buttons, text="MFA/MOM/QM", image=self.calculate_icon, compound=tk.LEFT,  # type: ignore
                    command=self.calculate_mfa_mom_qm).pack(side='left', padx=5)
-        ttk.Button(left_buttons, text="Interpolate Values",
-                   # No icon for these
-                   command=self.calculate_interpolation).pack(side='left', padx=5)
-        ttk.Button(left_buttons, text="Calculate MTC",
-                   # No icon for these
+        interpolate_btn = ttk.Button(left_buttons, image=self.interpolation_icon,
+                                     command=self.calculate_interpolation)
+        interpolate_btn.pack(side='left', padx=5)
+        self.create_tooltip(interpolate_btn, "Interpolate Values")
+
+        ttk.Button(left_buttons, text="MTC", image=self.calculate_icon, compound=tk.LEFT,  # type: ignore
                    command=self.calculate_mtc).pack(side='left', padx=5)
-        ttk.Button(left_buttons, text="Calculate Trim Corrections",
-                   # No icon for these
+        ttk.Button(left_buttons, text="Trim Corrections", image=self.calculate_icon, compound=tk.LEFT,  # type: ignore
                    command=self.calculate_trim_corrections).pack(side='left', padx=5)
-        ttk.Button(left_buttons, text="Calculate Density Correction",
-                   # No icon for these
+        ttk.Button(left_buttons, text="Density Correction", image=self.calculate_icon, compound=tk.LEFT,
                    command=self.calculate_density_correction).pack(side='left', padx=5)
-        ttk.Button(left_buttons, text="Calculate Final Results",
-                   # No icon for these
+        ttk.Button(left_buttons, text="Final Results", image=self.calculate_icon, compound=tk.LEFT,  # type: ignore
                    command=self.calculate_final_results).pack(side='left', padx=5)
 
         # Right side buttons

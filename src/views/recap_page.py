@@ -1,5 +1,6 @@
 import tkinter as tk
 from datetime import datetime
+import os
 from tkinter import messagebox, ttk, filedialog
 
 from PIL import Image, ImageTk
@@ -12,6 +13,7 @@ from reportlab.lib import colors
 
 from src.controllers.survey_controller import SurveyController
 from .base_page import BasePage
+from src.utils.themes import dark_theme
 
 
 class RecapPage(BasePage):
@@ -20,6 +22,7 @@ class RecapPage(BasePage):
     def __init__(self, master, controller=None, **kwargs):
         super().__init__(master, **kwargs)
         self.controller = controller if controller else SurveyController()
+        self.current_theme = dark_theme  # Assume dark theme by default
         self.value_labels = {}
 
         # Load icons
@@ -27,6 +30,12 @@ class RecapPage(BasePage):
 
         # Create the interface
         self.create_frame_content()
+
+    def update_style(self, theme: dict):
+        """Update styles for non-ttk widgets on this page."""
+        self.current_theme = theme
+        self.title_label.config(
+            background=theme["title_bg"], foreground=theme["title_fg"])
 
     def update_data(self, survey_data=None):
         """Update page with new survey data"""
@@ -353,6 +362,60 @@ class RecapPage(BasePage):
                 title="Save PDF Report",
                 initialfile=f"report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
             )
+            if not save_path:
+                return  # User cancelled
+
+            # --- Header function to draw logo on each page ---
+            # Build an absolute path to the image to avoid issues with the current working directory
+            project_root = os.path.dirname(os.path.dirname(
+                os.path.dirname(os.path.abspath(__file__))))
+            logo_path = os.path.join(project_root, "images", "Capt.png")
+            try:
+                logo = ImageReader(logo_path)
+            except Exception:
+                logo = None
+                print(f"Warning: Could not load logo from {logo_path}")
+
+            def header_and_footer(canvas, doc):
+                # --- Header ---
+                canvas.saveState()
+                if logo:
+                    # Draw logo on the top right. Adjust x, y, width, height as needed.
+                    logo_width = 100  # Increased logo width
+                    canvas.drawImage(logo, doc.width + doc.rightMargin - logo_width, doc.height + doc.topMargin - 50,
+                                     width=100, height=50, preserveAspectRatio=True, mask='auto')
+                canvas.restoreState()
+
+                # --- Footer ---
+                canvas.saveState()
+                canvas.setFont('Helvetica', 8)
+
+                # Contact Info
+                contact_text = "GH Maritime Surveys | www.GhMaritime-surveys.com | Tel: +212 123 456 789"
+                canvas.drawCentredString(
+                    doc.width/2 + doc.leftMargin, 50, contact_text)
+
+                # Disclaimer
+                disclaimer_line1 = "Disclaimer: The calculations herein are based on the vessel's documents and are believed to be accurate at the time of survey."
+                disclaimer_line2 = "This report is issued without prejudice, and no liability is accepted for any errors or discrepancies."
+                canvas.drawCentredString(
+                    doc.width/2 + doc.leftMargin, 40, disclaimer_line1)
+                canvas.drawCentredString(
+                    doc.width/2 + doc.leftMargin, 30, disclaimer_line2)
+
+                # Page Number
+                # Reset font size for page number
+                canvas.setFont('Helvetica', 9)
+                page_num_text = f"Page {canvas.getPageNumber()}"
+                canvas.drawCentredString(
+                    doc.width/2 + doc.leftMargin, 15, page_num_text)
+                canvas.restoreState()
+
+            # Use colors from the current theme
+            theme_colors = self.current_theme
+            cargo_color = colors.HexColor(theme_colors["cargo_label_fg"])
+            diff_color = colors.HexColor(theme_colors["diff_label_fg"])
+
             from reportlab.lib.colors import navy, red
 
             # 1. Generate the PDF content
@@ -360,19 +423,24 @@ class RecapPage(BasePage):
 
             doc = SimpleDocTemplate(save_path, pagesize=A4,
                                     rightMargin=72, leftMargin=72,
-                                    topMargin=72, bottomMargin=18)
+                                    topMargin=72, bottomMargin=72)
             styles = getSampleStyleSheet()
             # Use a monospaced font for the report
             styles['Normal'].fontName = 'Courier'
             styles['Normal'].fontSize = 9
-            styles.add(ParagraphStyle(
-                name='Title', parent=styles['Title'], fontName='Helvetica-Bold', fontSize=16, alignment=TA_CENTER, spaceAfter=20))
-            styles.add(ParagraphStyle(
-                name='h2', parent=styles['h2'], fontName='Helvetica-Bold', fontSize=12, spaceBefore=10, spaceAfter=5))
+
+            # Modify existing styles instead of adding new ones with the same name
+            styles['Title'].fontName = 'Helvetica-Bold'
+            styles['Title'].fontSize = 16
+            styles['Title'].alignment = TA_CENTER
+            styles['Title'].spaceAfter = 20
+
+            styles['h2'].fontName = 'Helvetica-Bold'
+
             styles.add(ParagraphStyle(name='CargoLabel', fontName='Helvetica-Bold',
-                       fontSize=10, textColor=navy, alignment=TA_CENTER))
+                       fontSize=10, textColor=cargo_color, alignment=TA_CENTER))
             styles.add(ParagraphStyle(name='DiffLabel', fontName='Helvetica-Bold',
-                       fontSize=10, textColor=red, alignment=TA_CENTER))
+                       fontSize=10, textColor=diff_color, alignment=TA_CENTER))
 
             # --- Get Data ---
             summary = self.controller.get_survey_summary()
@@ -416,8 +484,11 @@ class RecapPage(BasePage):
                  f"Operation Type: {get_val(vessel_data, 'operation_type', default='').upper()}"],
             ]
             vessel_table = Table(vessel_info_data, colWidths=[250, 250])
-            vessel_table.setStyle(TableStyle(
-                [('VALIGN', (0, 0), (-1, -1), 'TOP'), ('FONT', (0, 0), (-1, -1), 'Courier', 8)]))
+            vessel_table.setStyle(TableStyle([
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('FONT', (0, 0), (-1, -1), 'Courier', 8),
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ]))
             story.append(vessel_table)
 
             # --- Time Sheet (2 columns) ---
@@ -440,12 +511,15 @@ class RecapPage(BasePage):
                 time_sheet_data.append([col1, col2])
 
             time_sheet_table = Table(time_sheet_data, colWidths=[250, 250])
-            time_sheet_table.setStyle(TableStyle(
-                [('VALIGN', (0, 0), (-1, -1), 'TOP'), ('FONT', (0, 0), (-1, -1), 'Courier', 8)]))
+            time_sheet_table.setStyle(TableStyle([
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('FONT', (0, 0), (-1, -1), 'Courier', 8),
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ]))
             story.append(time_sheet_table)
 
             # --- Survey Data Comparison (3 columns table) ---
-            story.append(Paragraph("DRAFT SURVEY DATA", styles['h2']))
+            story.append(Paragraph("SURVEY DATA COMPARISON", styles['h2']))
 
             table_data = [['DESCRIPTION', 'INITIAL', 'FINAL']]
             report_items = [
@@ -486,11 +560,14 @@ class RecapPage(BasePage):
             survey_table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                # Description column to the left
+                ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+                # Value columns to the right
+                ('ALIGN', (1, 0), (-1, -1), 'RIGHT'),
                 ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
                 ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
                 ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-                ('GRID', (0, 0), (-1, -1), 1, colors.black)
+                ('GRID', (0, 0), (-1, -1), 1, colors.black),
             ]))
             story.append(survey_table)
 
@@ -524,15 +601,23 @@ class RecapPage(BasePage):
                 ['Final Net Displacement:', f'{f_net:.3f} mt'],
                 [Spacer(0, 20), Spacer(0, 20)],
                 [Paragraph('Cargo Quantity (Survey):', styles['CargoLabel']), Paragraph(
+                    # type: ignore
                     f'{cargo_qty:.3f} mt', styles['CargoLabel'])],
                 ['Cargo Quantity (B/L):', f'{qty_bl:.3f} mt'],
                 [Paragraph('Difference:', styles['DiffLabel']),
+                 # type: ignore
                  Paragraph(f'{diff:.3f} mt', styles['DiffLabel'])],
             ]
 
             summary_table = Table(summary_data, colWidths=[250, 250])
-            summary_table.setStyle(TableStyle(
-                [('ALIGN', (0, 0), (-1, -1), 'LEFT'), ('FONT', (0, 0), (-1, -1), 'Courier', 10), ('VALIGN', (0, 0), (-1, -1), 'MIDDLE')]))
+            summary_table.setStyle(TableStyle([
+                # Description column to the left
+                ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+                # Value column to the right
+                ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+                ('FONT', (0, 0), (-1, -1), 'Courier', 10),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ]))
             story.append(summary_table)
 
             # Add space before the signature block
@@ -540,7 +625,7 @@ class RecapPage(BasePage):
 
             # 2. Create the signature block
             signature_data = [
-                ['Le Chef Officier ou le Capitain', 'Hicham Garoum'],
+                ['Le Chef Officier ou le Captain', 'Hicham Groom'],
                 ['', 'Inspecteur Maritime Indépendant']
             ]
             signature_table = Table(signature_data, colWidths=[250, 250])
