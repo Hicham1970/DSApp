@@ -20,17 +20,27 @@ class SurveyController:
                                light_ship: float = None, declared_constant: float = None,
                                port_of_registry: str = None, product: str = None,
                                loading_port: str = None, discharging_port: str = None, imo: str = None, client: str = None,
-                               quantity_bl: float = None, table_density: float = None, operation_type: str = None,
-                               dock_density: float = None):
+                               quantity_bl: float = None, table_density: float = None, operation_type: str = None, dock_density: float = None,
+                               distance_from_for_pp: float = None, position_from_for_pp: str = None,
+                               distance_from_mid_pp: float = None, position_from_mid_pp: str = None,
+                               distance_from_aft_pp: float = None, position_from_aft_pp: str = None
+                               ):
         """Set vessel information"""
         self.survey_data.set_vessel_data(vessel_name, draft_number, lbp,
                                          light_ship, declared_constant, port_of_registry, product, loading_port,
                                          discharging_port, imo, client, quantity_bl, table_density,
-                                         operation_type, dock_density)
+                                         operation_type, dock_density,
+                                         distance_from_for_pp, position_from_for_pp,
+                                         distance_from_mid_pp, position_from_mid_pp,
+                                         distance_from_aft_pp, position_from_aft_pp)
 
     def set_time_sheet_information(self, time_sheet_entries: dict):
         """Set time sheet entries"""
         self.survey_data.set_time_sheet_data(time_sheet_entries)
+
+    def set_vessel_params(self, vessel_params: dict):
+        """Set vessel parameters for the current survey (initial or final)."""
+        self.survey_data.set_vessel_params(vessel_params)
 
     def set_observed_drafts(self, draft_for_port: float = 0, draft_for_star: float = 0,
                             draft_mid_port: float = 0, draft_mid_star: float = 0,

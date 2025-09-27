@@ -16,6 +16,9 @@ class SurveyData:
                         port_of_registry: str = None, product: str = None,
                         loading_port: str = None, discharging_port: str = None, imo: str = None, client: str = None,
                         quantity_bl: float = None, table_density: float = None, operation_type: str = None,
+                        distance_from_for_pp: float = None, position_from_for_pp: str = None,
+                        distance_from_mid_pp: float = None, position_from_mid_pp: str = None,
+                        distance_from_aft_pp: float = None, position_from_aft_pp: str = None,
                         dock_density: float = None):
         """Set vessel information"""
         if vessel_name:
@@ -48,12 +51,28 @@ class SurveyData:
             self.vessel_data['dock_density'] = dock_density
         if operation_type:
             self.vessel_data['operation_type'] = operation_type
+        if distance_from_for_pp is not None:
+            self.vessel_data['distance_from_for_pp'] = distance_from_for_pp
+        if position_from_for_pp:
+            self.vessel_data['position_from_for_pp'] = position_from_for_pp
+        if distance_from_mid_pp is not None:
+            self.vessel_data['distance_from_mid_pp'] = distance_from_mid_pp
+        if position_from_mid_pp:
+            self.vessel_data['position_from_mid_pp'] = position_from_mid_pp
+        if distance_from_aft_pp is not None:
+            self.vessel_data['distance_from_aft_pp'] = distance_from_aft_pp
+        if position_from_aft_pp:
+            self.vessel_data['position_from_aft_pp'] = position_from_aft_pp
 
     def set_time_sheet_data(self, time_sheet_entries: dict):
         """Set time sheet entries"""
         if 'time_sheet' not in self.vessel_data:
             self.vessel_data['time_sheet'] = {}
         self.vessel_data['time_sheet'].update(time_sheet_entries)
+
+    def set_vessel_params(self, vessel_params: dict):
+        """Set vessel parameters for the current survey (e.g., dock_density, distances)."""
+        self.get_current_survey_data()['vessel_params'] = vessel_params
 
     def set_observed_drafts(self, draft_for_port: float = 0, draft_for_star: float = 0,
                             draft_mid_port: float = 0, draft_mid_star: float = 0,

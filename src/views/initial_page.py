@@ -210,6 +210,7 @@ class InitialPage(BasePage):
 
     def update_style(self, theme: dict):
         """Update styles for non-ttk widgets on this page."""
+        super().update_style(theme)
         self.title_label.config(
             background=theme["title_bg"], foreground=theme["title_fg"])
         self.results_text.config(
@@ -221,6 +222,14 @@ class InitialPage(BasePage):
         for label in self.time_sheet_tk_labels:
             label.config(background=theme["labeled_entry_label_bg"],
                          foreground=theme["labeled_entry_label_fg"])
+
+        # Special handling for tkcalendar DateEntry and time Entry
+        if DateEntry is not None:
+            for key, (date_entry, time_entry) in self.time_sheet_entries.items():
+                # DateEntry is a tk.Entry, not ttk
+                date_entry.config(
+                    background=theme["entry_bg"], foreground=theme["entry_fg"])
+                # time_entry is a ttk.Entry, style is applied automatically
 
     def _create_vessel_tab(self):
         """Create vessel information tab"""
@@ -755,7 +764,17 @@ class InitialPage(BasePage):
                 quantity_bl=quantity_bl_val,
                 table_density=table_density_val,
                 dock_density=dock_density_val,
-                operation_type=self.operation_type.get()
+                operation_type=self.operation_type.get(),
+                # Also save distances and positions to the central data store
+                distance_from_for_pp=float(self.distance_from_for_pp_entry.get(
+                )) if self.distance_from_for_pp_entry.get() else None,
+                position_from_for_pp=self.position_from_for_pp_entry.get(),
+                distance_from_mid_pp=float(self.distance_from_mid_pp_entry.get(
+                )) if self.distance_from_mid_pp_entry.get() else None,
+                position_from_mid_pp=self.position_from_mid_pp_entry.get(),
+                distance_from_aft_pp=float(self.distance_from_aft_pp_entry.get(
+                )) if self.distance_from_aft_pp_entry.get() else None,
+                position_from_aft_pp=self.position_from_aft_pp_entry.get()
             )
 
             # Set time sheet information
@@ -767,6 +786,19 @@ class InitialPage(BasePage):
                 )
                 time_sheet_data[key] = full_datetime
             self.controller.set_time_sheet_information(time_sheet_data)
+
+            # Set vessel parameters for the current survey
+            vessel_params = {
+                'dock_density': dock_density_val,
+                'table_density': table_density_val,
+                'distance_from_for_pp': float(self.distance_from_for_pp_entry.get()) if self.distance_from_for_pp_entry.get() else 0.0,
+                'position_from_for_pp': self.position_from_for_pp_entry.get(),
+                'distance_from_mid_pp': float(self.distance_from_mid_pp_entry.get()) if self.distance_from_mid_pp_entry.get() else 0.0,
+                'position_from_mid_pp': self.position_from_mid_pp_entry.get(),
+                'distance_from_aft_pp': float(self.distance_from_aft_pp_entry.get()) if self.distance_from_aft_pp_entry.get() else 0.0,
+                'position_from_aft_pp': self.position_from_aft_pp_entry.get(),
+            }
+            self.controller.set_vessel_params(vessel_params)
 
             # Set observed drafts
             self.controller.set_observed_drafts(
@@ -1074,24 +1106,51 @@ class InitialPage(BasePage):
         self.results_text.insert(tk.END, "=== CORRECTED DRAFTS ===\n\n")
 
         vessel_data = self.controller.get_survey_summary().get('vessel_data', {})
+        observed_drafts = self.controller.survey_data.get_draft_data().get('observed_drafts', {})
+
         self.results_text.insert(
             tk.END, f"Vessel: {vessel_data.get('vessel_name', 'N/A')} | LBP: {vessel_data.get('lbp', 'N/A')} m\n")
         self.results_text.insert(
             tk.END, f"Dock Density: {vessel_data.get('dock_density', 'N/A')} | Table Density: {vessel_data.get('table_density', 'N/A')}\n\n")
 
-        # Drafts
+        # Observed Drafts
+        self.results_text.insert(tk.END, "--- Observed Drafts ---\n")
         self.results_text.insert(
-            tk.END, f"Forward Draft: {corrected_drafts['draft_for']:.3f} m\n")
+            tk.END, f"Forward: Port={observed_drafts.get('draft_for_port', 0.0):.3f} | Starboard={observed_drafts.get('draft_for_star', 0.0):.3f}\n")
         self.results_text.insert(
-            tk.END, f"Aft Draft: {corrected_drafts['draft_aft']:.3f} m\n")
+            tk.END, f"Midship: Port={observed_drafts.get('draft_mid_port', 0.0):.3f} | Starboard={observed_drafts.get('draft_mid_star', 0.0):.3f}\n")
         self.results_text.insert(
-            tk.END, f"Mid Draft: {corrected_drafts['draft_mid']:.3f} m\n")
+            tk.END, f"Aft:     Port={observed_drafts.get('draft_aft_port', 0.0):.3f} | Starboard={observed_drafts.get('draft_aft_star', 0.0):.3f}\n\n")
+
+        # Correction Distances
+        self.results_text.insert(tk.END, "--- Correction Distances ---\n")
+        self.results_text.insert(
+            tk.END, f"Dist. from Fwd PP: {self.distance_from_for_pp_entry.get()} m ({self.position_from_for_pp_entry.get()})\n")
+        self.results_text.insert(
+            tk.END, f"Dist. from Mid PP: {self.distance_from_mid_pp_entry.get()} m ({self.position_from_mid_pp_entry.get()})\n")
+        self.results_text.insert(
+            tk.END, f"Dist. from Aft PP: {self.distance_from_aft_pp_entry.get()} m ({self.position_from_aft_pp_entry.get()})\n\n")
+
+        # Corrected Drafts
+        self.results_text.insert(tk.END, "--- Corrected Drafts ---\n")
         self.results_text.insert(
             tk.END, f"Corrected Forward Draft: {corrected_drafts['draft_for_corrected']:.3f} m\n")
         self.results_text.insert(
             tk.END, f"Corrected Aft Draft: {corrected_drafts['draft_aft_corrected']:.3f} m\n")
         self.results_text.insert(
             tk.END, f"Corrected Mid Draft: {corrected_drafts['draft_mid_corrected']:.3f} m\n")
+
+        # Mean Drafts
+        self.results_text.insert(tk.END, "\n--- Mean Drafts ---\n")
+        self.results_text.insert(
+            tk.END, f"Mean Forward Draft: {corrected_drafts['draft_for']:.3f} m\n")
+        self.results_text.insert(
+            tk.END, f"Mean Aft Draft: {corrected_drafts['draft_aft']:.3f} m\n")
+        self.results_text.insert(
+            tk.END, f"Mean Midship Draft: {corrected_drafts['draft_mid']:.3f} m\n")
+
+        # Trims and LBM
+        self.results_text.insert(tk.END, "\n--- Trims & LBM ---\n")
         self.results_text.insert(
             tk.END, f"Observed Trim: {corrected_drafts['trim_observed']:.3f} m\n")
         self.results_text.insert(

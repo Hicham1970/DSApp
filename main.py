@@ -1,7 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
-
 from src.controllers.survey_controller import SurveyController
 from src.views.final_page import FinalPage
 from src.views.initial_page import InitialPage
@@ -106,7 +105,9 @@ class DraftSurveyApp:
                         tooltip_window = tk.Toplevel(self.notebook)
                         tooltip_window.wm_overrideredirect(True)
                         tooltip_window.wm_geometry(f"+{x}+{y}")
-                        label = tk.Label(tooltip_window, text=text, background="#FFFFE0",
+                        bg = self.current_theme.get("tooltip_bg", "#FFFFE0")
+                        fg = self.current_theme.get("tooltip_fg", "black")
+                        label = tk.Label(tooltip_window, text=text, background=bg, foreground=fg,
                                          relief="solid", borderwidth=1, font=("tahoma", "8", "normal"))
                         label.pack(ipadx=1)
             except tk.TclError:

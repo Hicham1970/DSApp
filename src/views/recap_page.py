@@ -380,9 +380,10 @@ class RecapPage(BasePage):
                 # --- Header ---
                 canvas.saveState()
                 if logo:
-                    # Draw logo on the top right. Adjust x, y, width, height as needed.
-                    logo_width = 100  # Increased logo width
-                    canvas.drawImage(logo, doc.width + doc.rightMargin - logo_width, doc.height + doc.topMargin - 50,
+                    # Draw logo on the top left.
+                    # The coordinates (doc.leftMargin, doc.height + doc.topMargin - 30) place it near the top-left corner.
+                    # A smaller number after topMargin moves it higher.
+                    canvas.drawImage(logo, doc.leftMargin, doc.height + doc.topMargin - 30,
                                      width=100, height=50, preserveAspectRatio=True, mask='auto')
                 canvas.restoreState()
 
@@ -391,7 +392,7 @@ class RecapPage(BasePage):
                 canvas.setFont('Helvetica', 8)
 
                 # Contact Info
-                contact_text = "GH Maritime Surveys | www.GhMaritime-surveys.com | Tel: +212 123 456 789"
+                contact_text = "GH Maritime Surveys | https://mysiteweb2frontend.onrender.com/.com | Tel: +212 123 456 789"
                 canvas.drawCentredString(
                     doc.width/2 + doc.leftMargin, 50, contact_text)
 
@@ -413,7 +414,7 @@ class RecapPage(BasePage):
 
             # Use colors from the current theme
             theme_colors = self.current_theme
-            cargo_color = colors.HexColor(theme_colors["cargo_label_fg"])
+            cargo_color = colors.black  # Force black color for cargo quantity
             diff_color = colors.HexColor(theme_colors["diff_label_fg"])
 
             from reportlab.lib.colors import navy, red
@@ -518,6 +519,59 @@ class RecapPage(BasePage):
             ]))
             story.append(time_sheet_table)
 
+            # --- Observed Drafts and Distances ---
+            # --- Observed Drafts and Distances ---
+            story.append(
+                Paragraph("OBSERVED DRAFTS & DISTANCES", styles['h2']))
+
+            obs_drafts_data = [
+                ['Description', 'Initial', 'Final'],
+                ['Fwd Port', get_val(initial_data, 'draft_data', 'observed_drafts', 'draft_for_port'), get_val(
+                    final_data, 'draft_data', 'observed_drafts', 'draft_for_port')],
+                ['Fwd Starboard', get_val(initial_data, 'draft_data', 'observed_drafts', 'draft_for_star'), get_val(
+                    final_data, 'draft_data', 'observed_drafts', 'draft_for_star')],
+                ['Mid Port', get_val(initial_data, 'draft_data', 'observed_drafts', 'draft_mid_port'), get_val(
+                    final_data, 'draft_data', 'observed_drafts', 'draft_mid_port')],
+                ['Mid Starboard', get_val(initial_data, 'draft_data', 'observed_drafts', 'draft_mid_star'), get_val(
+                    final_data, 'draft_data', 'observed_drafts', 'draft_mid_star')],
+                ['Aft Port', get_val(initial_data, 'draft_data', 'observed_drafts', 'draft_aft_port'), get_val(
+                    final_data, 'draft_data', 'observed_drafts', 'draft_aft_port')],
+                ['Aft Starboard', get_val(initial_data, 'draft_data', 'observed_drafts', 'draft_aft_star'), get_val(
+                    final_data, 'draft_data', 'observed_drafts', 'draft_aft_star')],
+                [Spacer(0, 10), '', ''],
+                ['Dock Density', get_val(initial_data, 'vessel_params', 'dock_density'), get_val(
+                    final_data, 'vessel_params', 'dock_density')],
+                ['Dist. Fwd PP (m)', get_val(initial_data, 'vessel_params', 'distance_from_for_pp'),
+                 get_val(final_data, 'vessel_params', 'distance_from_for_pp')],
+                ['Pos. Fwd PP', get_val(initial_data, 'vessel_params', 'position_from_for_pp'),
+                 get_val(final_data, 'vessel_params', 'position_from_for_pp')],
+                ['Dist. Mid PP (m)', get_val(initial_data, 'vessel_params', 'distance_from_mid_pp'),
+                 get_val(final_data, 'vessel_params', 'distance_from_mid_pp')],
+                ['Pos. Mid PP', get_val(initial_data, 'vessel_params', 'position_from_mid_pp'),
+                 get_val(final_data, 'vessel_params', 'position_from_mid_pp')],
+                ['Dist. Aft PP (m)', get_val(initial_data, 'vessel_params', 'distance_from_aft_pp'),
+                 get_val(final_data, 'vessel_params', 'distance_from_aft_pp')],
+                ['Pos. Aft PP', get_val(initial_data, 'vessel_params', 'position_from_aft_pp'),
+                 get_val(final_data, 'vessel_params', 'position_from_aft_pp')],
+            ]
+
+            obs_drafts_table = Table(
+                obs_drafts_data, colWidths=[150, 175, 175])
+            obs_drafts_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('ALIGN', (0, 0), (0, -1), 'LEFT'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 10),
+                ('TOPPADDING', (0, 0), (-1, 0), 10),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black),
+            ]))
+            story.append(obs_drafts_table)
+
+            # Force a page break before the next section
+            story.append(PageBreak())
+
             # --- Survey Data Comparison (3 columns table) ---
             story.append(Paragraph("SURVEY DATA COMPARISON", styles['h2']))
 
@@ -558,22 +612,26 @@ class RecapPage(BasePage):
 
             survey_table = Table(table_data, colWidths=[150, 175, 175])
             survey_table.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('BACKGROUND', (0, 0), (-1, 0), colors.lightgrey),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.black),
                 # Description column to the left
                 ('ALIGN', (0, 0), (0, -1), 'LEFT'),
                 # Value columns to the right
                 ('ALIGN', (1, 0), (-1, -1), 'RIGHT'),
                 ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
                 ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                ('BACKGROUND', (0, 1), (-1, -1), colors.white),
                 ('GRID', (0, 0), (-1, -1), 1, colors.black),
             ]))
             story.append(survey_table)
 
-            # --- Final Cargo Summary (on a new page) ---
-            story.append(PageBreak())
-            story.append(Paragraph("FINAL CARGO SUMMARY", styles['h2']))
+            # --- Final Cargo Summary and Signatures (on the same page) ---
+            # Use KeepTogether to try to keep the summary and signatures on the same page as the table if possible
+            # or together on the next page if they don't fit.
+            final_section = []
+            final_section.append(Spacer(1, 12))  # Further reduced space
+            final_section.append(
+                Paragraph("FINAL CARGO SUMMARY", styles['h2']))
 
             i_disp = float(get_val(initial_data, 'calculation_data',
                                    'density_corrections', 'corrected_displacement_for_density', default=0.0))
@@ -602,11 +660,7 @@ class RecapPage(BasePage):
                 [Spacer(0, 20), Spacer(0, 20)],
                 [Paragraph('Cargo Quantity (Survey):', styles['CargoLabel']), Paragraph(
                     # type: ignore
-                    f'{cargo_qty:.3f} mt', styles['CargoLabel'])],
-                ['Cargo Quantity (B/L):', f'{qty_bl:.3f} mt'],
-                [Paragraph('Difference:', styles['DiffLabel']),
-                 # type: ignore
-                 Paragraph(f'{diff:.3f} mt', styles['DiffLabel'])],
+                    f'{cargo_qty:.3f} mt', styles['CargoLabel'])]
             ]
 
             summary_table = Table(summary_data, colWidths=[250, 250])
@@ -618,15 +672,15 @@ class RecapPage(BasePage):
                 ('FONT', (0, 0), (-1, -1), 'Courier', 10),
                 ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
             ]))
-            story.append(summary_table)
+            final_section.append(summary_table)
 
             # Add space before the signature block
-            story.append(Spacer(1, 72))  # type: ignore
+            final_section.append(Spacer(1, 36))  # Further reduced space
 
             # 2. Create the signature block
             signature_data = [
-                ['Le Chef Officier ou le Captain', 'Hicham Groom'],
-                ['', 'Inspecteur Maritime Indépendant']
+                ['Le Chef Officier ou le Captain', "L'inspecteur"],
+                ['(Signature)', "(Signature de l'inspecteur)"]
             ]
             signature_table = Table(signature_data, colWidths=[250, 250])
             signature_table.setStyle(TableStyle([
@@ -636,7 +690,10 @@ class RecapPage(BasePage):
                  None, None, 2, 2),  # type: ignore
                 ('TOPPADDING', (0, 0), (-1, 0), 20),  # Space for signature
             ]))
-            story.append(signature_table)
+            final_section.append(signature_table)
+
+            # Add the final section to the main story
+            story.extend(final_section)
 
             # 3. Build the PDF
             doc.build(story, onFirstPage=header_and_footer,

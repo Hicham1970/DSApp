@@ -10,10 +10,12 @@ class BasePage(ttk.Frame):
         self.master = master
 
         # Common attributes for all pages
+        from src.utils.themes import dark_theme
         self.frame_content = None
         self.controller = controller
         self.title_label = None
         self.calculator = None
+        self.current_theme = dark_theme  # To hold the current theme, default to dark
         self.labeled_entries = []
 
         # Initialize UI
@@ -50,11 +52,13 @@ class BasePage(ttk.Frame):
 
     def create_labeled_entry(self, parent, label_text, row, column, **kwargs):
         """Helper method to create a label-entry pair"""
+        bg = self.current_theme.get("labeled_entry_label_bg", "gray15")
+        fg = self.current_theme.get("labeled_entry_label_fg", "gold")
         label = tk.Label(
             parent,
             text=label_text,
-            background='gray15',
-            foreground='gold',
+            background=bg,
+            foreground=fg,
             anchor='e'
         )
         label.grid(row=row, column=column, padx=5, pady=2, sticky='e')
@@ -78,7 +82,9 @@ class BasePage(ttk.Frame):
             tooltip_window = tk.Toplevel(widget)
             tooltip_window.wm_overrideredirect(True)
             tooltip_window.wm_geometry(f"+{x}+{y}")
-            label = tk.Label(tooltip_window, text=text, background="#FFFFE0", relief="solid", borderwidth=1,
+            bg = self.current_theme.get("tooltip_bg", "#FFFFE0")
+            fg = self.current_theme.get("tooltip_fg", "black")
+            label = tk.Label(tooltip_window, text=text, background=bg, foreground=fg, relief="solid", borderwidth=1,
                              font=("tahoma", "8", "normal"))
             label.pack(ipadx=1)
 
@@ -93,7 +99,7 @@ class BasePage(ttk.Frame):
 
     def update_style(self, theme: dict):
         """Template method to update styles for non-ttk widgets."""
-        pass
+        self.current_theme = theme
 
     def clear_fields(self):
         """Template method to clear all input fields"""

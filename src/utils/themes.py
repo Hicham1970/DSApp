@@ -20,19 +20,21 @@ dark_theme = {
     "button_pressed_bg": "gray20",
     "button_active_fg": "white",
     "entry_bg": "gray10",
-    "entry_fg": "white",
+    "entry_fg": "black",
     "entry_insert": "white",
     "label_fg": "white",
     "recap_label_bg": "gray15",
     "recap_label_fg": "white",
-    "cargo_label_fg": "cyan",
-    "diff_label_fg": "orange red",
+    "cargo_label_fg": "#00FFFF",  # cyan
+    "diff_label_fg": "#FF4500",  # orange red
     "text_bg": "black",
     "text_fg": "light green",
     "title_bg": "gray12",
     "title_fg": "gold",
     "labeled_entry_label_bg": "gray15",
     "labeled_entry_label_fg": "gold",
+    "tooltip_bg": "#333333",
+    "tooltip_fg": "white",
 }
 
 light_theme = {
@@ -58,12 +60,14 @@ light_theme = {
     "label_fg": "black",
     "recap_label_bg": "#F0F0F0",
     "recap_label_fg": "black",
-    "cargo_label_fg": "navy",
-    "diff_label_fg": "red",
+    "cargo_label_fg": "#000080",  # navy
+    "diff_label_fg": "#FF0000",  # red
     "text_bg": "white",
     "text_fg": "black",
     "title_bg": "#E0E0E0",
     "title_fg": "black",
     "labeled_entry_label_bg": "#F0F0F0",
     "labeled_entry_label_fg": "black",
+    "tooltip_bg": "#FFFFE0",
+    "tooltip_fg": "black",
 }
