@@ -28,3 +28,5 @@ The application is organized into three main tabs represented by icons:
 **Themes (Themes Menu):**
    - **Dark Theme:** Activates the dark theme for better visual comfort.
    - **Light Theme:** Activates the standard light theme.
+Remarks: By executing the file build.bat you can create an executable version of this application, it works in Window even you don't have Python on your environement.
+Just Like it and use it for your fun . 
