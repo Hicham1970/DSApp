@@ -1,3 +1,5 @@
+import os
+import sys
 import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
@@ -9,6 +11,15 @@ from src.utils.config_manager import load_config, save_config
 from src.views.recap_page import RecapPage
 
 
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
+
 class DraftSurveyApp:
     def __init__(self, root):
         self.root = root
@@ -18,7 +29,7 @@ class DraftSurveyApp:
 
         # Set window icon
         try:
-            self.root.iconbitmap('images/ico.ico')
+            self.root.iconbitmap(resource_path('images/ico.ico'))
         except tk.TclError:
             print(
                 "Could not load icon 'images/ico.ico'. Make sure the file exists in the 'images' folder.")
@@ -74,7 +85,8 @@ class DraftSurveyApp:
         }
         for attr_name, path in icon_paths.items():
             try:
-                img = Image.open(path).resize(icon_size, Image.LANCZOS)
+                img = Image.open(resource_path(path)).resize(
+                    icon_size, Image.LANCZOS)
                 setattr(self, attr_name, ImageTk.PhotoImage(img))
             except Exception as e:
                 print(f"Error loading main icon {path}: {e}")
@@ -426,7 +438,7 @@ class DraftSurveyApp:
     def show_about(self):
         """Show about dialog"""
         tk.messagebox.showinfo(
-            "About", "Draft Survey Application\nVersion 2.0\n\nA comprehensive tool for maritime draft surveys, designed by Hicham Garoum Septembre 2025, Contactez moi pour plus d'informations a l'addresse email: h.garoum@gmail.com")
+            "About", "HG Draft Survey Application\nVersion 2.0\n\nA comprehensive tool for maritime draft surveys, designed by Hicham Garoum Septembre 2025, Contactez moi pour plus d'informations a l'addresse email: h.garoum@gmail.com")
 
     def show_guide(self):
         """Show user guide"""

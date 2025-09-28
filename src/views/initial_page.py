@@ -1,3 +1,5 @@
+import os
+import sys
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
@@ -12,6 +14,16 @@ except ImportError:
     DateEntry = None
 
 from .base_page import BasePage
+
+
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(os.path.join(
+            os.path.dirname(__file__), "..", ".."))
+    return os.path.join(base_path, relative_path)
 
 
 class InitialPage(BasePage):
@@ -148,7 +160,8 @@ class InitialPage(BasePage):
 
         for attr_name, path in icon_paths.items():
             try:
-                img = Image.open(path).resize(icon_size, Image.LANCZOS)
+                img = Image.open(resource_path(path)).resize(
+                    icon_size, Image.LANCZOS)
                 setattr(self, attr_name, ImageTk.PhotoImage(img))
             except FileNotFoundError:
                 print(
