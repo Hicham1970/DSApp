@@ -125,12 +125,18 @@ class DraftSurveyApp:
     def setup_styles(self, theme: dict):
         """Setup application styles"""
         style = ttk.Style()
+        try:
+            style.theme_use('clam')
+        except tk.TclError:
+            print(
+                "Le thème 'clam' n'est pas disponible, les boutons ne seront pas arrondis.")
 
         # Configure notebook style
         style.configure("TNotebook", background=theme["notebook_bg"])
         style.configure("TNotebook.Tab",
                         background=theme["tab_bg"],
                         foreground=theme["tab_fg"],
+                        borderwidth=0,
                         font=('Arial', 10, 'bold'),
                         padding=[10, 5])
 
@@ -151,9 +157,24 @@ class DraftSurveyApp:
                         background=theme["button_bg"],
                         foreground=theme["button_fg"],
                         font=('Arial', 6, 'bold'),
-                        padding=5)
+                        borderwidth=0,
+                        relief='flat',
+                        padding=5, radius=15)  # 'radius' est spécifique à certains thèmes comme 'clam'
 
         style.map("TButton",
+                  background=[("active", theme["button_active_bg"]),
+                              ("pressed", theme["button_pressed_bg"])],
+                  foreground=[("active", theme["button_active_fg"])])
+
+        # Style for rounded buttons with images
+        style.configure("Round.TButton",
+                        background=theme["button_bg"],
+                        foreground=theme["button_fg"],
+                        font=('Arial', 8, 'bold'),
+                        borderwidth=0,
+                        relief='flat',
+                        padding=8, radius=20)
+        style.map("Round.TButton",
                   background=[("active", theme["button_active_bg"]),
                               ("pressed", theme["button_pressed_bg"])],
                   foreground=[("active", theme["button_active_fg"])])

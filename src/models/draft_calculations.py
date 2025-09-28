@@ -366,6 +366,41 @@ class DraftCalculations:
             lines.append(line)
         lines.append('=' * title_width)
 
+        # --- Observed Drafts and Distances ---
+        lines.append(
+            "\n" + "--- OBSERVED DRAFTS & DISTANCES ---".center(title_width))
+        header = f"{'DESCRIPTION':<25} | {'INITIAL':^{col_width}} | {'FINAL':^{col_width}}"
+        lines.append(header)
+        lines.append('-' * title_width)
+
+        observed_items = [
+            ("Fwd Port", 'draft_data', 'observed_drafts', 'draft_for_port'),
+            ("Fwd Starboard", 'draft_data', 'observed_drafts', 'draft_for_star'),
+            ("Mid Port", 'draft_data', 'observed_drafts', 'draft_mid_port'),
+            ("Mid Starboard", 'draft_data', 'observed_drafts', 'draft_mid_star'),
+            ("Aft Port", 'draft_data', 'observed_drafts', 'draft_aft_port'),
+            ("Aft Starboard", 'draft_data', 'observed_drafts', 'draft_aft_star'),
+            ("--- Distances & Density ---",),
+            ("Dock Density", 'vessel_params', 'dock_density'),
+            ("Dist. Fwd PP (m)", 'vessel_params', 'distance_from_for_pp'),
+            ("Pos. Fwd PP", 'vessel_params', 'position_from_for_pp'),
+            ("Dist. Mid PP (m)", 'vessel_params', 'distance_from_mid_pp'),
+            ("Pos. Mid PP", 'vessel_params', 'position_from_mid_pp'),
+            ("Dist. Aft PP (m)", 'vessel_params', 'distance_from_aft_pp'),
+            ("Pos. Aft PP", 'vessel_params', 'position_from_aft_pp'),
+        ]
+
+        for item in observed_items:
+            label = item[0]
+            if len(item) == 1:
+                lines.append(f"\n{label.center(title_width)}")
+                continue
+            keys = item[1:]
+            i_val_str = get_val(initial_data, *keys)
+            f_val_str = get_val(final_data, *keys)
+            line = f"{label:<25} | {i_val_str:^{col_width}} | {f_val_str:^{col_width}}"
+            lines.append(line)
+
         # --- Survey Data Comparison ---
         lines.append(
             "\n" + "--- SURVEY DATA COMPARISON ---".center(title_width))

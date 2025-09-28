@@ -136,7 +136,7 @@ class InitialPage(BasePage):
             'save_icon_photo': "images/save_data.png",
             'load_icon_photo': "images/upload.png",
             'report_icon_photo': "images/report.png",
-            'draft_readings_icon': "images/Draft_Observed.png",
+            'draft_readings_icon': "images/Observe.png",
             'deductibles_icon': "images/bunkers.png",
             'calculations_icon': "images/Calculation1.png",
             'results_icon': "images/Result.png",
@@ -635,22 +635,22 @@ class InitialPage(BasePage):
         left_buttons = ttk.Frame(button_frame)
         left_buttons.grid(row=0, column=0, sticky='w')
 
-        ttk.Button(left_buttons, text="Drafts", image=self.calculate_icon, compound=tk.LEFT,
+        ttk.Button(left_buttons, text="Drafts", image=self.calculate_icon, compound=tk.LEFT, style="Round.TButton",
                    command=self.calculate_corrected_drafts).pack(side='left', padx=5)
-        ttk.Button(left_buttons, text="MFA/MOM/QM", image=self.calculate_icon, compound=tk.LEFT,
+        ttk.Button(left_buttons, text="MFA/MOM/QM", image=self.calculate_icon, compound=tk.LEFT, style="Round.TButton",
                    command=self.calculate_mfa_mom_qm).pack(side='left', padx=5)
-        interpolate_btn = ttk.Button(left_buttons, image=self.interpolation_icon,
+        interpolate_btn = ttk.Button(left_buttons, image=self.interpolation_icon, style="Round.TButton",
                                      command=self.calculate_interpolation)
         interpolate_btn.pack(side='left', padx=5)
         self.create_tooltip(interpolate_btn, "Interpolate Values")
 
-        ttk.Button(left_buttons, text="MTC", image=self.calculate_icon, compound=tk.LEFT,
+        ttk.Button(left_buttons, text="MTC", image=self.calculate_icon, compound=tk.LEFT, style="Round.TButton",
                    command=self.calculate_mtc).pack(side='left', padx=5)
-        ttk.Button(left_buttons, text="Trim Corrections", image=self.calculate_icon, compound=tk.LEFT,
+        ttk.Button(left_buttons, text="Trim Corrections", image=self.calculate_icon, compound=tk.LEFT, style="Round.TButton",
                    command=self.calculate_trim_corrections).pack(side='left', padx=5)
-        ttk.Button(left_buttons, text="Density Correction", image=self.calculate_icon, compound=tk.LEFT,
+        ttk.Button(left_buttons, text="Density Correction", image=self.calculate_icon, compound=tk.LEFT, style="Round.TButton",
                    command=self.calculate_density_correction).pack(side='left', padx=5)
-        ttk.Button(left_buttons, text="Initial Results", image=self.calculate_icon, compound=tk.LEFT,
+        ttk.Button(left_buttons, text="Initial Results", image=self.calculate_icon, compound=tk.LEFT, style="Round.TButton",
                    command=self.calculate_initial_results).pack(side='left', padx=5)
 
         # Right side buttons
